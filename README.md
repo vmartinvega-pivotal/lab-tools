@@ -53,6 +53,7 @@ alias bootstrap="docker run -v /home/\"${USER}\"/lab-tools:/home/daf/lab-tools \
 -v /home/\"${USER}\"/.ssh:/home/daf/.ssh \
 --rm lab-tools:latest /home/daf/lab-tools/scripts/bootstrap.sh\"$@\""
 ```
+
 ```
 alias actions="docker run -v /home/\"${USER}\"/lab-tools:/home/daf/lab-tools \
 --env ANSIBLE_COLLECTIONS_PATHS=/home/daf/lab-tools/collections \
