@@ -1,0 +1,14 @@
+---
+- name: Set user
+  ansible.builtin.set_fact:
+    set_up_user: vicente
+    
+- name: Copy files
+  ansible.builtin.copy:
+    src: "{{ file }}"
+    dest: "/home/{{ user_set_up }}"
+  loop:
+    - download.py
+    - config.yml
+  loop_control:
+    loop_var: file

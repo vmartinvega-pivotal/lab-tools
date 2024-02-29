@@ -1,0 +1,21 @@
+---
+- name: Disks Uri 
+  ansible.builtin.set_fact:
+    dd_disks_uri: "https://{{ dd_hostname }}:{{ dd_port }}{{ dd_resources.api_dd_systems }}/{{ dd_system_id }}/storage/disks"
+
+- name: Debug info
+  ansible.builtin.debug:
+    var: dd_disks_uri
+
+- name: Get DD Disks
+  ansible.builtin.uri:
+    validate_certs: false
+    url: "{{ dd_disks_uri }}"
+    method: GET
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+      X-DD-AUTH-TOKEN: "{{ x_dd_auth_token }}"
+    return_content: true
+    status_code: 200
+  register: dd_get_disks_result

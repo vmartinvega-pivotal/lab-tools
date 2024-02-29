@@ -1,0 +1,63 @@
+---
+- name: Setup PPDM
+  hosts: "{{ variable_hosts }}"
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Wait for PPDM to be alive
+      ansible.builtin.uri:
+        validate_certs: false
+        url: "https://{{ inventory_hostname }}"
+        method: GET
+        headers:
+          Content-Type: text/html; charset=UTF-8
+      until: result.status == 200
+      retries: 30
+      delay: 10
+      register: result
+
+    - name: Set facts
+      ansible.builtin.set_fact:
+        ppdm_hostname: "{{ inventory_hostname }}"
+        ppdm_username: "{{ config.ppdm.username }}"
+        ppdm_password: "{{ config.ppdm.password }}"
+        dd_port: "{{ config.data_domain.port }}"
+        dd_hostname: "{{ config.data_domain.host }}"
+        dd_username: "{{ config.data_domain.username }}"
+        dd_password: "{{ config.data_domain.password }}"
+
+    - name: PPDM login
+      ansible.builtin.include_role:
+        name: dell.daf.ppdm
+        tasks_from: login
+
+    - name: PPDM Trust Data Domain
+      ansible.builtin.include_role:
+        name: dell.daf.ppdm
+        tasks_from: trust_dd
+
+    - name: Add Data Domain Credential
+      ansible.builtin.include_role:
+        name: dell.daf.ppdm
+        tasks_from: create_credential
+      vars:
+        cred_name: cred_dd
+
+    - name: Add Data Domain
+      ansible.builtin.include_role:
+        name: dell.daf.ppdm
+        tasks_from: add_dd
+      vars:
+        dd_name: datadomain
+
+    - name: Enable Asset
+      ansible.builtin.include_role:
+        name: dell.daf.ppdm
+        tasks_from: enable_asset
+      vars:
+        asset_name: "{{ item }}"
+      loop:
+        - FILE_SYSTEM
+        # - VMWARE_VIRTUAL_MACHINE
+        # - KUBERNETES
+        # - NAS_SHARE

@@ -1,0 +1,42 @@
+---
+- name: Deploy Samba
+  hosts: samba
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Include role to reconcile vms
+      ansible.builtin.include_role:
+        name: dell.daf.vcenter
+        tasks_from: deploy_vm
+      vars:
+        vm_name: "{{ name }}"
+        vm_template: "{{ template }}"
+        vm_folder: "{{ folder }}"
+        vm_networks: "{{ networks }}"
+        vm_disk: "{{ disk }}"
+        vm_hardware: "{{ hardware }}"
+        vm_dns: "{{ dns }}"
+        vm_domain: "{{ domain }}"
+
+    - name: Wait 600 seconds for target connection to become reachable/usable
+      ansible.builtin.wait_for_connection:
+        delay: 60
+        timeout: 300
+
+- name: Setup Samba service
+  hosts: samba
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Include role to setup the node
+      ansible.builtin.include_role:
+        name: dell.daf.common
+        tasks_from: setup_host.yml
+
+    - name: Include role to setup Samba server
+      ansible.builtin.include_role:
+        name: dell.daf.samba
+
+    - name: Include role to setup jellyfin server
+      ansible.builtin.include_role:
+        name: dell.daf.jellyfin

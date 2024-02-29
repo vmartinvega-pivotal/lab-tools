@@ -1,0 +1,61 @@
+---
+- name: Check for windows updates
+  ansible.windows.win_powershell:
+    script: |
+      Get-Command –Module PSWindowsUpdate
+
+- name: Apply windows updates
+  ansible.windows.win_powershell:
+    script: |
+      Get-WindowsUpdate -AcceptAll -Install -AutoReboot
+
+- name: Install Applications for all windows hosts
+  win_chocolatey:
+    name: "{{ application.name }}"
+    params: "{{ application.params | default([]) }}"
+    state: present
+  loop:
+    - name: vscode.install
+    - name: googlechrome
+    - name: 7zip.install
+    - name: notepadplusplus.install
+    - name: openjdk
+    - name: lightscreen
+    - name: adobereader
+    - name: keepass
+    - name: chrome-remote-desktop-host
+    - name: microsoft-teams
+    - name: nordvpn
+  loop_control:
+    loop_var: application
+
+- name: "Install Applications for '{{ name }}' jumphost"
+  win_chocolatey:
+    name: "{{ application.name }}"
+    params: "{{ application.params | default([]) }}"
+    state: present
+  loop:
+    - name: python
+      params:
+        - version=3.11.0
+    - name: git.install
+    - name: git
+    - name: mremoteng
+    - name: mobaxterm
+    - name: dbeaver
+    - name: postman
+    #- name: pycharm-community
+  loop_control:
+    loop_var: application
+  when: name == "jumplab"
+
+- name: "Install Applications for '{{ name }}' jumphost"
+  win_chocolatey:
+    name: "{{ application.name }}"
+    params: "{{ application.params | default([]) }}"
+    state: present
+  loop:
+    - name: tor-browser
+  loop_control:
+    loop_var: application
+  when: name == "darkweb"

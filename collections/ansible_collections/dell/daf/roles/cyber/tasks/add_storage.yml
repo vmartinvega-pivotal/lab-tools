@@ -1,0 +1,27 @@
+---
+- name: Add Storage Uri 
+  ansible.builtin.set_fact:
+    cr_storage_uri: "https://{{ cr_hostname }}:{{ cr_port }}{{ cr_resources.storage }}"
+
+- name: CR API call to add storage
+  uri:
+    url: "{{ cr_storage_uri }}"
+    method: POST
+    headers:
+      X-CR-AUTH-TOKEN: "{{ cr_access_token }}"
+    return_content: yes
+    body_format: json
+    status_code: [201]
+    body:
+      nickname: "{{ cr_add_storage__nickname }}"
+      hostinfo:
+        hostname: "{{ cr_add_storage__hostname }}"
+        hostUsername: "{{ cr_add_storage__username }}"
+        hostPassword: "{{ cr_add_storage__password }}"
+        sshPort: 22
+      tags: ['added by bot Dell Automation']
+    validate_certs: "{{ cr_validate_certs }}"
+  register: cr_add_storage_response
+  retries: "{{ cr_uri_retries }}"
+  delay: "{{ cr_uri_delay }}"
+  until: cr_add_storage_response.status == 201

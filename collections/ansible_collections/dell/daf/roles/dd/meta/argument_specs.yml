@@ -1,0 +1,81 @@
+---
+argument_specs:
+  yaml_anchors:
+    short_description: Yaml anchors
+    options:
+      dd_hostname: &dd_hostname
+        required: True
+        type: str
+        description: Data Domain ip or fqdn
+      dd_system_id: &dd_system_id
+        required: True
+        type: str
+        description: System id for the Data Domain
+      x_dd_auth_token: &x_dd_auth_token
+        required: True
+        type: str
+        description: Token to authenticate to data domain
+      dd_username: &dd_username
+        required: True
+        type: str
+        description: Username to login to data domain
+      dd_password: &dd_password
+        required: True
+        type: str
+        description: Password to login
+  create_user:
+    short_description: Create User using rest api
+    options:
+      dd_hostname: *dd_hostname
+      dd_system_id: *dd_system_id
+      x_dd_auth_token: *x_dd_auth_token
+      dd_create_user__user:
+        required: True
+        description: user to be created
+        type: dict
+  login:
+    short_description: Login to Data Domain
+    options:
+      dd_hostname: *dd_hostname
+      dd_username: *dd_username
+      dd_password: *dd_password
+  create_user_with_uid:
+    short_description: Login to Data Domain
+    options:
+      dd_hostname: *dd_hostname
+      dd_username: *dd_username
+      dd_password: *dd_password
+  get_filesys:
+    short_description: Get filesystem info
+    options:
+      dd_hostname: *dd_hostname
+      dd_system_id: *dd_system_id
+      x_dd_auth_token: *x_dd_auth_token
+  get_ddboost:
+    short_description: Get ddboost info
+    options:
+      dd_hostname: *dd_hostname
+      dd_system_id: *dd_system_id
+      x_dd_auth_token: *x_dd_auth_token
+  get_users:
+    short_description: Get users info
+    options:
+      dd_hostname: *dd_hostname
+      dd_system_id: *dd_system_id
+      x_dd_auth_token: *x_dd_auth_token
+  enable_ddboost:
+    short_description: Enable ddboost
+    options:
+      dd_hostname: *dd_hostname
+      dd_system_id: *dd_system_id
+      x_dd_auth_token: *x_dd_auth_token
+  create_mtree:
+    short_description: Create mtree
+    options:
+      dd_hostname: *dd_hostname
+      dd_system_id: *dd_system_id
+      x_dd_auth_token: *x_dd_auth_token
+      create_mtree__name:
+        required: True
+        type: str
+        description: Mtree name to create

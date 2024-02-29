@@ -1,0 +1,105 @@
+---
+- name: Checks if the cluster was initialized
+  ansible.builtin.stat:
+    path: "/home/{{ local_user }}/discovery_token_value"
+  register: discovery_token_value_file
+
+- name: Set fact kubernetes initialized
+  ansible.builtin.set_fact:
+    kubeadm_initialized: "{{ discovery_token_value_file.stat.exists }}"
+
+- name: Initialize Kubernetes cluster
+  block:
+    - name: Init kubeadm
+      ansible.builtin.shell: "kubeadm init  --pod-network-cidr={{ kubernetes_pod_network }}"
+      become: true
+      register: kubeadm_init_result
+   
+    - name: Set fact number of lines
+      ansible.builtin.set_fact:
+        kubeadm_init_stdout_lines_length: "{{ kubeadm_init_result.stdout_lines | length }}"
+  
+    - name: Get lines for parsing tokens
+      ansible.builtin.set_fact:
+        kubeadm_init_token_line: "{{ kubeadm_init_result.stdout_lines[ (kubeadm_init_stdout_lines_length | int)  - (2 | int) ] }}"
+        kubeadm_init_discovery_token_line: "{{ kubeadm_init_result.stdout_lines[ (kubeadm_init_stdout_lines_length | int)  - (1 | int) ] }}"
+
+    - name: Set fact for tokens
+      ansible.builtin.set_fact:
+        token_value: "{{ ( kubeadm_init_token_line | split(' ') )[4] }}"
+        discovery_token_value: "{{ ( kubeadm_init_discovery_token_line | split(' ') )[1] }}"
+
+    - name: Copy token_value to file
+      ansible.builtin.copy:
+        dest: "/home/{{ local_user }}/token_value"
+        owner: "{{ local_user }}"
+        group: "{{ local_user }}"
+        content: >-
+          {{ token_value }}
+        mode: 0644
+
+    - name: Copy discovery_token_value to file
+      ansible.builtin.copy:
+        dest: "/home/{{ local_user }}/discovery_token_value"
+        owner: "{{ local_user }}"
+        group: "{{ local_user }}"
+        content: >-
+          {{ discovery_token_value }}
+        mode: 0600
+
+    - name: Create .kube folder
+      ansible.builtin.file:
+        path: ".kube"
+        state: directory
+        owner: "{{ local_user }}"
+        group: "{{ local_user }}"
+        mode: '0755'
+
+    - name: Copy file with owner and permissions
+      ansible.builtin.copy:
+        src: /etc/kubernetes/admin.conf
+        remote_src: true
+        dest: .kube/config
+        owner: "{{ local_user }}"
+        group: "{{ local_user }}"
+        mode: '0600'
+      become: true
+
+    - name: Apply flannel to the clusterº
+      ansible.builtin.shell: >-
+        kubectl apply -f {{ flannel_url }}
+
+    - name: Patch node to remove all taints
+      ansible.builtin.shell: >-
+        kubectl patch node {{ name }} -p '{"spec":{"taints":[]}}'
+
+    - name: Setup local access
+      ansible.builtin.include_role:
+        name: dell.daf.kubernetes
+        tasks_from: _configure_local_access.yml
+
+    - name: Set insecure connections
+      ansible.builtin.shell: >-
+        kubectl config set-cluster kubernetes --insecure-skip-tls-verify=true
+
+    - name: Setup dashboard
+      ansible.builtin.include_role:
+        name: dell.daf.kubernetes
+        tasks_from: _deploy_dashboard.yml
+  when: not kubeadm_initialized
+
+- name: Read tokens to add workers
+  block: 
+    - name: Get content of remote file discovery_token_value
+      ansible.builtin.shell: "cat /home/{{ local_user }}/discovery_token_value"
+      register: discovery_token_encoded
+
+    - name: Get content of remote file token_value
+      ansible.builtin.shell: "cat /home/{{ local_user }}/token_value"
+      register: token_value_encoded
+
+    - name: Decode tokens
+      ansible.builtin.set_fact:
+        discovery_token_value: "{{ discovery_token_encoded.stdout }}"
+        token_value: "{{ token_value_encoded.stdout }}"
+  when: kubeadm_initialized

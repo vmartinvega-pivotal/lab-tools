@@ -1,0 +1,19 @@
+---
+- name: Create user Uri 
+  ansible.builtin.set_fact:
+    dd_filesystems_uri: "https://{{ dd_hostname }}:{{ dd_port }}{{ dd_resources.dd_systems }}/{{ dd_system_id }}/file-systems"
+
+- name: Get filesystems info
+  ansible.builtin.uri:
+    validate_certs: "{{ dd_validate_certs }}"
+    force_basic_auth: true
+    url: "{{ dd_filesystems_uri }}"
+    method: GET
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+      X-DD-AUTH-TOKEN: "{{ x_dd_auth_token }}"
+  register: dd_getfilesystems_response
+  retries: "{{ dd_uri_retries }}"
+  delay: "{{ dd_uri_delay }}"
+  until: dd_getfilesystems_response.status == 200

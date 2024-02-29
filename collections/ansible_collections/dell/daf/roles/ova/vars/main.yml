@@ -1,0 +1,7 @@
+---
+ovftool_bin: /usr/bin/vmware-ovftool/ovftool
+sslVerify: false
+powerOn: true
+acceptAllEulas: true
+overwrite: true
+local_folder: "{{ lookup('env','LOCAL_FOLDER') or '/tmp' }}"

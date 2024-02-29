@@ -1,0 +1,49 @@
+---
+- name: Add helm repository
+  kubernetes.core.helm_repository:
+    name: "{{ repo.repo_name }}"
+    force_update: true
+    validate_certs: false
+    repo_state: present
+    repo_url: "{{ repo.repo_url }}"
+  loop:
+    - repo_url: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
+      repo_name: csi-driver-nfs
+  loop_control:
+    loop_var: repo
+  delegate_to: localhost
+
+- name: Install CSI driver
+  kubernetes.core.helm:
+    name: csi-driver-nfs
+    chart_ref: csi-driver-nfs/csi-driver-nfs
+    chart_version: v4.5.0
+    release_state: present
+    validate_certs: false
+    release_namespace: kube-system
+    create_namespace: false
+    timeout: 10m0s
+    wait: true
+  delegate_to: localhost
+    
+- name: Create StorageClass
+  kubernetes.core.k8s:
+    state: present
+    name: "{{ storage_class }}"
+    definition:
+      apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        name: "{{ storage_class }}"
+        annotations:
+          storageclass.kubernetes.io/is-default-class: "true"
+      provisioner: nfs.csi.k8s.io
+      parameters:
+        server: "{{ nfs_server }}"
+        share: "{{ shares[0].path }}"
+        mountPermissions: "0777"
+      reclaimPolicy: Delete
+      volumeBindingMode: Immediate
+      mountOptions:
+        - nfsvers=4.1
+  become: false

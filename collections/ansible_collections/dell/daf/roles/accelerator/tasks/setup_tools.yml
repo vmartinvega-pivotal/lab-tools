@@ -1,0 +1,36 @@
+- name: Copy tools
+  ansible.builtin.copy:
+    src: "{{ local_folder }}/{{ tools_file }}"
+    dest: "{{ share }}"
+    mode: '0644'
+    owner: daf
+    group: daf
+
+- name: Unarchive the tools
+  ansible.builtin.unarchive:
+    src: "{{ share }}/{{ tools_file }}"
+    dest: "{{ share }}"
+    owner: daf
+    group: daf
+    remote_src: yes
+
+- name: Remove tools
+  file:
+    path: "{{ share }}/{{ tools_file }}"
+    state: absent
+
+- name: Create script directory
+  ansible.builtin.file:
+    path: "{{ share }}/scripts" 
+    state: directory
+    mode: '0775'
+    owner: daf
+    group: daf
+
+- name: Copy Jumphost_Setup.ps1
+  ansible.builtin.copy:
+    src: Jumphost_Setup.ps1
+    dest: "{{ share }}/scripts/"
+    mode: '0644'
+    owner: daf
+    group: daf

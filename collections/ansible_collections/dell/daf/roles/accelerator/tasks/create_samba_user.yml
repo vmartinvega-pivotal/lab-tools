@@ -1,0 +1,9 @@
+- name: Create Samba User
+  ansible.builtin.script: >-
+    create_samba_user.sh
+    {{ inventory_hostname }}
+    {{ login_user }}
+    {{ login_password | quote }}
+    {{ samba_user }}
+    {{ samba_password  | quote }}
+  delegate_to: localhost

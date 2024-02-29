@@ -1,0 +1,55 @@
+---
+- name: Lab Actions
+  hosts: "{{ variable_hosts }}"
+  connection: local
+  gather_facts: false
+  vars:
+    vcenter_login: &vcenter_login
+      hostname: "{{ vcenter_hostname }}"
+      username: "{{ vcenter_username }}"
+      password: "{{ vcenter_password }}"
+      validate_certs: "{{ vcenter_validate_certs }}"
+      datacenter: "{{ datacenter_name }}"
+  tasks:
+    - name: Shutdown VM
+      community.vmware.vmware_guest_powerstate:
+        <<: *vcenter_login
+        name: "{{ name }}"
+        state_change_timeout: 200
+        state: powered-off
+      when: action == "stop" or action == "destroy"
+
+    - name: PowerOn VM
+      community.vmware.vmware_guest_powerstate:
+        <<: *vcenter_login
+        name: "{{ name }}"
+        state_change_timeout: 200
+        state: powered-on
+      when: action == "start"
+
+    - name: Delete VM
+      community.vmware.vmware_guest:
+        <<: *vcenter_login
+        name: "{{ name }}"
+        state: absent
+      when: action == "destroy"
+
+    - name: Set state for snapshot
+      ansible.builtin.set_fact:
+        snapshot_action: revert
+      when: action == "revert-snapshot"
+
+    - name: Set state for snapshot
+      ansible.builtin.set_fact:
+        snapshot_action: "{{ (action == 'take-snapshot') | ternary('present', 'absent') }}"
+      when: action == "take-snapshot" or action == "del-snapshot"
+
+    - name: Manage Snapshot of VM "{{ inventory_hostname }}"
+      community.vmware.vmware_guest_snapshot:
+        <<: *vcenter_login
+        folder: "/{{ folder }}"
+        name: "{{ name }}"
+        state: "{{ snapshot_action }}"
+        snapshot_name: "{{ snapshot_name }}"
+        memory_dump: true
+      when: action == "take-snapshot" or action =="del-snapshot" or action == "revert-snapshot"

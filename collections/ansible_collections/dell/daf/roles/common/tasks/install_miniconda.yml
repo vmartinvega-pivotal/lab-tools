@@ -1,0 +1,60 @@
+---
+- name: conda - Download Miniconda
+  ansible.builtin.get_url:
+    url: https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    dest: /tmp/install-miniconda.sh
+    mode: 0550
+
+- name: conda - Create conda folder
+  ansible.builtin.file:
+    path: /opt/miniconda3
+    state: directory
+    mode: 755
+    recurse: yes
+  become: true
+
+- name: conda - Check if conda already installed
+  ansible.builtin.stat:
+    path: "/opt/miniconda3/bin"
+  register: conda_installed
+
+- name: conda - Run the installer
+  ansible.builtin.shell: /tmp/install-miniconda.sh -b -u -p /opt/miniconda3
+  when: not conda_installed.stat.exists
+
+- name: conda - Remove the installer
+  ansible.builtin.file:
+    state: absent
+    path: /tmp/install-miniconda.sh
+
+- name: conda - Add miniconda bin to path
+  ansible.builtin.shell: echo 'export PATH=/opt/miniconda3/bin:$PATH' >> /etc/profile
+  become: true
+
+- name: conda - write permission for all
+  ansible.builtin.file:
+    path: /opt/miniconda3
+    mode: u=rwx,g=rwx,o=rwx
+    recurse: yes
+  become: true
+
+- name: conda - execution permission for all
+  ansible.builtin.file:
+    path: /opt/miniconda3/bin
+    mode: +x
+    recurse: yes
+  become: true
+
+- name: conda - Installing Jupyter Notebook, Jupyter Lab and extensions in base conda
+  ansible.builtin.shell: "{{ command }}"
+  args:
+    executable: /bin/bash
+  become: true
+  become_user: "{{ user_set_up }}"
+  loop:
+    - /opt/miniconda3/bin/conda install -k -y -c conda-forge notebook
+    - /opt/miniconda3/bin/conda install -k -y -c conda-forge nb_conda_kernels
+    - /opt/miniconda3/bin/conda install -k -y -c conda-forge jupyterlab
+    - /opt/miniconda3/bin/conda install -k -y -c conda-forge jupyter_contrib_nbextensions
+  loop_control:
+    loop_var: command

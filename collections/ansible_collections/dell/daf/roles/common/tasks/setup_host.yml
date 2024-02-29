@@ -1,0 +1,19 @@
+---
+- name: Debug info
+  ansible.builtin.debug:
+    var: ansible_distribution
+
+- name: Disable Swap
+  ansible.builtin.shell: swapoff -a
+
+- name: Disable swap permanently in file /etc/fstab
+  ansible.builtin.replace:
+    path: /etc/fstab
+    regexp: '^([^#].*?\sswap\s+.*)$'
+    replace: '# \1'
+
+- name: Setup ubuntu host
+  ansible.builtin.include_role:
+    name: dell.daf.common
+    tasks_from: _setup_ubuntu.yml
+  when: ansible_distribution == "Ubuntu"

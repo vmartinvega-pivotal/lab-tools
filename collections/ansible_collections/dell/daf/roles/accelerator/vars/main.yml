@@ -1,0 +1,5 @@
+---
+share: /srv/samba/share
+ovftool_bin: /usr/bin/vmware-ovftool/ovftool
+tools_file: tools_jump_cr.zip
+source_tools_path: "accelerator/{{ tools_file }}"

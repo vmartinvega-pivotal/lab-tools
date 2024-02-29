@@ -1,0 +1,109 @@
+---
+argument_specs:
+  yaml_anchors:
+    short_description: Yaml anchors
+    options:
+      cr_hostname: &cr_hostname
+        required: True
+        type: str
+        description: Cyber Recovery ip or fqdn
+      cr_username: &cr_username
+        required: True
+        type: str
+        description: Username to login to Cyber recovery
+      cr_password: &cr_password
+        required: True
+        type: str
+        description: Password to login
+      cr_access_token: &cr_access_token
+        required: True
+        type: str
+        description: Token to login to cyber recovery
+  login:
+    short_description: Login to Cyber Recovery
+    options:
+      cr_hostname: *cr_hostname
+      cr_username: *cr_username
+      cr_password: *cr_password
+  create_user:
+    short_description: Create a user in Cyber Recovery
+    options:
+      cr_hostname: *cr_hostname
+      cr_access_token: *cr_access_token
+      cr_create_user__username:
+        required: True
+        type: str
+        description: Username
+      cr_create_user__password:
+        required: True
+        type: str
+        description: Username password
+      cr_create_user__first_name:
+        required: True
+        type: str
+        description: first name
+      cr_create_user__last_name:
+        required: True
+        type: str
+        description: last name
+      cr_create_user__email:
+        required: True
+        type: str
+        description: email
+      cr_create_user__role:
+        required: True
+        type: str
+        description: role
+      cr_create_user__phone:
+        required: False
+        type: str
+        description: Username phone
+  add_storage:
+    short_description: Add storage to CR
+    options:
+      cr_hostname: *cr_hostname
+      cr_access_token: *cr_access_token
+      cr_add_storage__nickname:
+        required: True
+        type: str
+        description: nickname for the storage
+      cr_add_storage__hostname:
+        required: True
+        type: str
+        description: dd hostname
+      cr_add_storage__username:
+        required: True
+        type: str
+        description: dd username
+      cr_add_storage__password:
+        required: True
+        type: str
+        description: dd password
+  get_dr_backup:
+    short_description: Get Disaster Recovery Backup Info
+    options:
+      cr_hostname: *cr_hostname
+      cr_access_token: *cr_access_token
+  get_storage:
+    short_description: Get all Storage
+    options:
+      cr_hostname: *cr_hostname
+      cr_access_token: *cr_access_token
+  config_dr_backup:
+    short_description: Add storage to DR backup
+    options:
+      cr_hostname: *cr_hostname
+      cr_access_token: *cr_access_token
+      config_dr_backup__mgmtddId:
+        required: True
+        type: str
+        description: management id
+      config_dr_backup__mtree:
+        required: True
+        type: str
+        description: mtree name
+  patch_dr_backup:
+    short_description: Enable the DR backup
+    options:
+      cr_hostname: *cr_hostname
+      cr_access_token: *cr_access_token

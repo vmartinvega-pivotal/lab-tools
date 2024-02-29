@@ -1,0 +1,13 @@
+name: generic_env
+# channels:
+#   - pytorch
+#   - nvidia
+#   - defaults
+#   - conda-forge
+dependencies:
+  - python=3.10
+  - pip=22.2.2
+  - pip:
+    - ipykernel
+    - pytube
+    - pytube3

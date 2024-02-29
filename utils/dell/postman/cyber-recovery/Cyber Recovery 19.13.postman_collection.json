@@ -1,0 +1,254 @@
+{
+	"info": {
+		"_postman_id": "9a376af9-c3e4-4f75-86d5-b023ab9e6aba",
+		"name": "Cyber Recovery",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29306482"
+	},
+	"item": [
+		{
+			"name": "Login and get a Token",
+			"item": [
+				{
+					"name": "Login and get a token - first step",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let jsonData = pm.response.json();",
+									"let token = jsonData.accessToken;",
+									"pm.environment.set('authToken', token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"strictSSL": false
+					},
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{ppdmpasswd}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{ppdmuser}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"username\":\"{{cyberuser}}\",\"password\":\"{{cyberpasswd}}\"}"
+						},
+						"url": {
+							"raw": "https://{{cybersrv}}:14778/cr/v7/login",
+							"protocol": "https",
+							"host": [
+								"{{cybersrv}}"
+							],
+							"port": "14778",
+							"path": [
+								"cr",
+								"v7",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Vault",
+			"item": [
+				{
+					"name": "Release Vault",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"strictSSL": false
+					},
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{ppdmpasswd}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{ppdmuser}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "X-CR-AUTH-TOKEN",
+								"value": " {{authToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"username\":\"{{cyberuser}}\",\"password\":\"{{cyberpasswd}}\"}"
+						},
+						"url": {
+							"raw": "https://{{cybersrv}}:14778/cr/v7/vault/release",
+							"protocol": "https",
+							"host": [
+								"{{cybersrv}}"
+							],
+							"port": "14778",
+							"path": [
+								"cr",
+								"v7",
+								"vault",
+								"release"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Secure Vault",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"strictSSL": false
+					},
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{ppdmpasswd}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{ppdmuser}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "X-CR-AUTH-TOKEN",
+								"value": " {{authToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"username\":\"{{cyberuser}}\",\"password\":\"{{cyberpasswd}}\"}"
+						},
+						"url": {
+							"raw": "https://{{cybersrv}}:14778/cr/v7/vault/secure",
+							"protocol": "https",
+							"host": [
+								"{{cybersrv}}"
+							],
+							"port": "14778",
+							"path": [
+								"cr",
+								"v7",
+								"vault",
+								"secure"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	]
+}

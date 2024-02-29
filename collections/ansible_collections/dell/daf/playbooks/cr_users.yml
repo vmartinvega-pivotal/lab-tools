@@ -1,0 +1,29 @@
+- name: Create Users for Cyber Recovery
+  hosts: "{{ variable_hosts }}"
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Login to cr with crso user
+      ansible.builtin.include_role:
+        name: dell.daf.cyber
+        tasks_from: login
+      vars:
+        cr_hostname: "{{ inventory_hostname }}"
+        cr_username: crso
+        cr_password: "{{ config.crso_password }}"
+
+    - name: Create users in CR
+      ansible.builtin.include_role:
+        name: dell.daf.cyber
+        tasks_from: create_user
+      vars:
+        cr_hostname: "{{ inventory_hostname }}"
+        cr_create_user__username: "{{ user.name }}"
+        cr_create_user__password: "{{ config.users_password }}"
+        cr_create_user__first_name: "{{ user.first_name }}"
+        cr_create_user__last_name: "{{ user.last_name }}"
+        cr_create_user__email: "{{ user.email }}"
+        cr_create_user__role: "{{ user.role }}"
+      loop: "{{ config.users }}"
+      loop_control:
+        loop_var: user

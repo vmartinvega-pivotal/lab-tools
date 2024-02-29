@@ -1,0 +1,59 @@
+---
+- name: Login Uri 
+  ansible.builtin.set_fact:
+    dd_login_uri: "https://{{ dd_hostname }}:{{ dd_port }}{{ dd_resources.login }}"
+
+- name: Set username to use
+  ansible.builtin.set_fact:
+    login_input_username: "{{ dd_username }}"
+  when: login_input_username is not defined
+
+- name: Set password to use
+  ansible.builtin.set_fact:
+    login_input_password: "{{ dd_password }}"
+  when: login_input_password is not defined
+  no_log: true
+
+- name: Get DD  API authentication token
+  ansible.builtin.uri:
+    validate_certs: false
+    url: "{{ dd_login_uri }}"
+    method: POST
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    return_content: true
+    body:
+      username: "{{ login_input_username }}"
+      password: "{{ login_input_password }}"
+    body_format: json
+    status_code: 201
+  register: dd_login_result
+  retries: "{{ dd_uri_retries }}"
+  delay: "{{ dd_uri_delay }}"
+  until: dd_login_result.status == 201
+
+- name: System Uri 
+  ansible.builtin.set_fact:
+    dd_system_uri: "https://{{ dd_hostname }}:{{ dd_port }}{{ dd_resources.system }}"
+
+- name: get system id
+  ansible.builtin.uri:
+    validate_certs: "{{ dd_validate_certs }}"
+    force_basic_auth: true
+    url: "{{ dd_system_uri }}"
+    method: GET
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+      X-DD-AUTH-TOKEN: "{{ dd_login_result.x_dd_auth_token }}"
+    body_format: json
+  register: dd_system_result
+  retries: "{{ dd_uri_retries }}"
+  delay: "{{ dd_uri_delay }}"
+  until: dd_system_result.status == 200
+
+- name: Set outputs
+  ansible.builtin.set_fact:
+    x_dd_auth_token: "{{ dd_login_result.x_dd_auth_token }}"
+    dd_system_id: "{{ dd_system_result.json.uuid | replace (':','%3A') }}"

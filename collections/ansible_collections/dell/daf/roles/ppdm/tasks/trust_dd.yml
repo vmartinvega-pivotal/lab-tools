@@ -1,0 +1,40 @@
+---
+- name: Data Domain certificates Uri 
+  ansible.builtin.set_fact:
+    ppdm_dd_certificate_uri: "https://{{ ppdm_hostname }}:{{ ppdm_port }}{{ ppdm_resources.certificates }}?host={{ dd_hostname }}&port={{ dd_port }}&type=Host"
+
+- name: Get Data Domain Certificate
+  ansible.builtin.uri:
+    validate_certs: false
+    url: "{{ ppdm_dd_certificate_uri }}"
+    method: GET
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+      Authorization: "Bearer {{ ppdm_auth_token }}"
+    return_content: true
+    status_code: 200
+  register: ppdm_dd_certificate_result
+
+- name: Set fact for the body
+  ansible.builtin.set_fact:
+    body: "{{ ppdm_dd_certificate_result.json }}"
+
+- name: Update state for body to ACCEPTED
+  ansible.builtin.set_fact:
+    body: "{{ body | combine({'state': 'ACCEPTED'}) }}"
+
+- name: Put Credential from Data Domain into PPDM
+  ansible.builtin.uri:
+    validate_certs: false
+    url: "https://{{ ppdm_hostname }}:{{ ppdm_port }}{{ ppdm_resources.certificates }}/{{ body.id }}"
+    method: PUT
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+      Authorization: "Bearer {{ ppdm_auth_token }}"
+    return_content: true
+    body:
+      "{{ body }}"
+    body_format: json
+    status_code: 200

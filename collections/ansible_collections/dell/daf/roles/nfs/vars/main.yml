@@ -1,0 +1,8 @@
+---
+storage_class: nfs-csi
+nfs_server: "{{ groups['nfs'][0] }}"
+shares:
+  - path: /mnt/kubernetes
+    allowed_clients: 192.168.1.0/24
+  - path: /mnt/datastore
+    allowed_clients: 192.168.1.0/24

@@ -1,0 +1,24 @@
+---
+- name: Data Domain Uri 
+  ansible.builtin.set_fact:
+    ppdm_asset_settings_uri: "https://{{ ppdm_hostname }}:{{ ppdm_port }}{{ ppdm_resources.asset_settings }}"
+
+- name: Enable asset
+  ansible.builtin.uri:
+    validate_certs: false
+    url: "{{ ppdm_asset_settings_uri }}"
+    method: PUT
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+      Authorization: "Bearer {{ ppdm_auth_token }}"
+    return_content: true
+    body:
+      id: ASSET_SETTING
+      properties: 
+        - name: enabledAssetTypes
+          type: LIST
+          value: "{{ asset_name }}"
+    body_format: json
+    status_code: 200
+  

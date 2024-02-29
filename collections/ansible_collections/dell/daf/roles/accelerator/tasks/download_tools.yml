@@ -1,0 +1,15 @@
+- name: Set fact for local folder
+  ansible.builtin.set_fact:
+    local_folder: "{{ lookup('env', 'LOCAL_FOLDER') or '/tmp' }}"
+
+- name: Download tools
+  ansible.builtin.include_role:
+    name: dell.daf.vcenter
+    tasks_from: get_from_datastore
+  vars:
+    vc_server: "{{ vcenter_hostname }}"
+    vc_username: "{{ vcenter_username }}"
+    vc_password: "{{ vcenter_password }}"
+    datastore: "{{ datastore_name }}"
+    source_path: "{{ source_tools_path }}"
+    target_path: "{{ local_folder }}/{{ tools_file }}"

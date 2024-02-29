@@ -1,0 +1,20 @@
+---
+- name: Mtree Uri 
+  ansible.builtin.set_fact:
+    dd_mtree_uri: "https://{{ dd_hostname }}:{{ dd_port }}{{ dd_resources.dd_systems }}/{{ dd_system_id }}/mtrees?size=100"
+
+- name: Get mtree
+  ansible.builtin.uri:
+    validate_certs: "{{ dd_validate_certs }}"
+    force_basic_auth: true
+    url: "{{ dd_mtree_uri }}"
+    method: GET
+    status_code: [200]
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+      X-DD-AUTH-TOKEN: "{{ x_dd_auth_token }}"
+  register: dd_getmtrees_response
+  retries: "{{ dd_uri_retries }}"
+  delay: "{{ dd_uri_delay }}"
+  until: dd_getmtrees_response.status == 200

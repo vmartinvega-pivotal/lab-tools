@@ -1,0 +1,27 @@
+---
+- name: Checks if the worker was joined
+  ansible.builtin.stat:
+    path: "/home/{{ local_user }}/worker_joined"
+  register: worker_joined_file
+
+- name: Set facts worker joined
+  ansible.builtin.set_fact:
+    worker_joined: "{{ worker_joined_file.stat.exists }}"
+
+- name: Join the worker
+  block:
+    - name: Set facts for token from first master
+      ansible.builtin.set_fact:
+        token_value: "{{ hostvars[ groups['masters'][0] ].token_value }}"
+        discovery_token_value: "{{ hostvars[ groups['masters'][0] ].discovery_token_value }}"
+      
+    - name: Add worker to cluster
+      ansible.builtin.shell: 
+        kubeadm join {{ groups['masters'][0] }}:6443 --token {{ token_value }} --discovery-token-ca-cert-hash {{ discovery_token_value }}
+      become: true
+
+    - name: Creating an empty file
+      ansible.builtin.file:
+        path: "/home/{{ local_user }}/worker_joined"
+        state: touch
+  when: not worker_joined

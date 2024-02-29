@@ -1,0 +1,25 @@
+---
+- name: Data Domain Uri 
+  ansible.builtin.set_fact:
+    ppdm_datadomain_uri: "https://{{ ppdm_hostname }}:{{ ppdm_port }}{{ ppdm_resources.add_datadomain }}"
+
+- name: Create PPDM Add Data Domain
+  ansible.builtin.uri:
+    validate_certs: false
+    url: "{{ ppdm_datadomain_uri }}"
+    method: POST
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+      Authorization: "Bearer {{ ppdm_auth_token }}"
+    return_content: true
+    body:
+      name: "{{ dd_name }}"
+      type: "EXTERNALDATADOMAIN"
+      address: "{{ dd_hostname }}"
+      port: 3009
+      credentials:
+        id: "{{ credential_id }}"
+    body_format: json
+    status_code: 201
+  register: ppdm_dd_result

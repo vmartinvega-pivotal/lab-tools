@@ -1,0 +1,72 @@
+     
+# PPDM - Git
+# https://github.com/rjainoje/ppdm-automation
+---
+- name: Deploy PPDM
+  hosts: "{{ variable_hosts }}"
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Set fact for local folder
+      ansible.builtin.set_fact:
+        local_folder: "{{ lookup('env', 'LOCAL_FOLDER') or '/tmp' }}"
+
+    - name: Check if the ova exists locally
+      ansible.builtin.stat:
+        path: "{{ local_folder }}/{{ ova.name }}"
+      register: ova_response
+
+    - name: Download the ova
+      ansible.builtin.include_role:
+        name: dell.daf.vcenter
+        tasks_from: get_from_datastore
+      vars:
+        vc_server: "{{ vcenter_hostname }}"
+        vc_username: "{{ vcenter_username }}"
+        vc_password: "{{ vcenter_password }}"
+        datastore: "{{ datastore_name }}"
+        source_path: "ova/dell/ppdm/{{ ova.name }}"
+        target_path: "{{ local_folder }}/{{ ova.name }}"
+      when: not ova_response.stat.exists
+
+    - name: Deploy ova
+      ansible.builtin.include_role:
+        name: dell.daf.ova
+      vars:
+        vm_name: "{{ name }}"
+        vm_folder: "{{ folder }}"
+        powerOn: false
+
+    - name: Update CPU for the VM
+      ansible.builtin.include_role:
+        name: dell.daf.vcenter
+        tasks_from: set_vm_cpu
+      vars:
+        vc_server: "{{ vcenter_hostname }}"
+        vc_username: "{{ vcenter_username }}"
+        vc_password: "{{ vcenter_password }}"
+        vm_name: "{{ name }}"
+        vm_cpus: "{{ ova.cpus }}"
+
+    - name: PowerOn VM
+      community.vmware.vmware_guest_powerstate:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: "{{ vcenter_validate_certs }}"
+        datacenter: "{{ datacenter_name }}"
+        name: "{{ name }}"
+        state_change_timeout: 200
+        state: powered-on
+
+    - name: Wait and get the IPs for the VM
+      ansible.builtin.include_role:
+        name: dell.daf.vcenter
+        tasks_from: get_ips
+      vars:
+        vc_server: "{{ vcenter_hostname }}"
+        vc_username: "{{ vcenter_username }}"
+        vc_password: "{{ vcenter_password }}"
+        vm_name: "{{ name }}"
+      no_log: true
+     

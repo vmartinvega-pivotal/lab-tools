@@ -1,0 +1,1 @@
+local_folder: "{{ lookup('env','LOCAL_FOLDER') or '/tmp' }}" 

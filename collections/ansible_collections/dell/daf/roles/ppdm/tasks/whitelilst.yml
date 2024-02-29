@@ -1,0 +1,21 @@
+---
+- name: ppdm whitelist Uri 
+  ansible.builtin.set_fact:
+    ppdm_whitelist_uri: "https://{{ ppdm_hostname }}:{{ ppdm_port }}{{ ppdm_resources.whitelist }}"
+
+- name: Access whitelist
+  ansible.builtin.uri:
+    validate_certs: false
+    url: "{{ ppdm_whitelist_uri }}"
+    method: POST
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+      Authorization: "Bearer {{ ppdm_auth_token }}"
+    body:
+      expiresAt: "2083-09-02T13:52:19.592Z"
+      state: APPROVED
+      ip: "{{ whitelist_ip }}"
+    body_format: json
+    return_content: true
+    status_code: 201

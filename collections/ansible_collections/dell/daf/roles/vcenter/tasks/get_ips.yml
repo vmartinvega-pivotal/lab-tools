@@ -1,0 +1,26 @@
+---
+- name: Get IPs VM
+  ansible.builtin.script: >-
+    get_ips_vm.ps1
+    -vc_server "{{ vc_server }}"
+    -vm_name "{{ vm_name }}"
+    -vc_username "{{ vc_username }}"
+    -vc_password "{{ vc_password }}"
+  args:
+    executable: /usr/bin/pwsh
+  environment:
+    NO_COLOR: "True"
+  register: ips_output
+  delegate_to: localhost
+
+- name: Get line with the output
+  ansible.builtin.set_fact:
+    internal_ipsv4: "{{ line | split(':')}}"
+  when: "'OUTPUT' in line"
+  loop: "{{ ips_output.stdout_lines }}"
+  loop_control:
+    loop_var: line
+
+- name: Set Output
+  ansible.builtin.set_fact:
+    ipv4_output: "{{ internal_ipsv4[1] }}"

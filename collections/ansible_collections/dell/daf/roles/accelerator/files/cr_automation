@@ -1,0 +1,40 @@
+#!/bin/bash
+set -euo pipefail
+
+SAMBA_FOLDER=/srv/samba/share
+IMAGE=vmartinvega/automation:latest
+
+function usage {
+    echo "usage: $0 <project file> <command>"
+    echo ""
+    echo "  where command is one of"
+    echo "    - cr_deploy \"Deploys Cyber Recovery to an esxi/vcenter\""
+    echo "    - cr_setup \"Initializes Cyber Recovery software with random passwords stored in keepass\""
+    echo "    - cr_users \"Creates configured users in Cyber Recovery with random passwords stored in keepass\""
+    echo "    - cr_storage \"Adds Data Domain vault to Cyber Recovery and enables Disaster Recovery in Cyber Recovery. Depends on dd_setup\""
+    echo "    - dd_setup \"Creates users, mtrees and enables ddboost in Data Domain for Cyber Recovery integration\""
+    echo "    - dd_officer \"Checks data domain officer user is created or adds a new one\""
+    echo "    - checks \"Does a list of checks in the environment needed for the automation\""
+    echo "    - full_automation \"Does a full automation configuring Cyber Recovery and Data Domain in the right order\""
+}
+
+if [ "$#" -ne 2 ]
+then
+    usage
+    exit 1
+fi
+
+PROJECT_FILE="$1"
+usecase="$2"
+
+set -o nounset
+
+case "${usecase}" in
+    cr_deploy|cr_setup|cr_users|cr_storage|dd_setup|dd_officer|checks|full_automation)
+        docker run -i -t -v "${SAMBA_FOLDER}":/cr --rm "${IMAGE}" "${usecase}".sh /cr /cr/"${PROJECT_FILE}"
+        ;;
+    *)
+        usage
+        exit 1
+        ;;
+esac

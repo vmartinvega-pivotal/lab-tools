@@ -1,0 +1,11 @@
+---
+- name: Change password for root user
+  ansible.builtin.script: >-
+    cyber_update_root_pass.sh
+    {{ cyber_host }}
+    {{ cyber_user }}
+    {{ cyber_user_password }}
+    {{ cyber_root_password }}
+    {{ cyber_new_root_password }}
+  delegate_to: localhost
+  no_log: true

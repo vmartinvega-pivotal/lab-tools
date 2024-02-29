@@ -1,0 +1,75 @@
+---
+- name: Stop and disable services
+  ansible.builtin.systemd:
+    name: "{{ service }}"
+    state: stopped
+    enabled: no
+    masked: no
+    daemon_reload: yes
+  loop:
+    - ufw 
+  become: true
+  loop_control:
+    loop_var: service
+
+- name: Install some packages
+  ansible.builtin.apt:
+    name: "{{ package }}"
+    state: present
+    update_cache: yes
+  loop: 
+    - ksh93u+m
+    - ksh
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - software-properties-common
+    - python3-pip
+    - virtualenv
+    - python3-setuptools
+    - ansible
+    - acl
+    - tesseract-ocr
+    - net-tools
+    - wget
+    - git
+    - bc
+    - unzip
+    - nfs-common
+    - nfs4-acl-tools
+    - docker.io
+  become: true
+  loop_control:
+    loop_var: package
+
+- name: Add deadsnakes repo
+  ansible.builtin.apt_repository:
+    repo: ppa:deadsnakes/ppa
+  become: true
+
+- name: Update repositories and install python
+  ansible.builtin.apt:
+    name: python3.12
+    update_cache: yes
+  become: true
+
+- name: Install yq
+  ansible.builtin.get_url:
+    url: https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+    dest: /usr/local/bin/yq
+    mode: 'a+x'
+  become: true
+
+- name: Install some python packages
+  ansible.builtin.pip:
+    name: "{{ package }}"
+  loop:
+    - pexpect
+    - lynx
+    - cx_Oracle
+    - firewall
+    - kubernetes
+    - dnspython
+    - netaddr
+  loop_control:
+    loop_var: package

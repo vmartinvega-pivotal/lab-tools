@@ -1,0 +1,9 @@
+---
+- name: First login DDVE
+  ansible.builtin.script: >-
+    ddve_first_login.sh
+    {{ dd_hostname }}
+    {{ dd_username }}
+    {{ dd_password | quote }}
+  register: dd_first_login_response
+  delegate_to: localhost

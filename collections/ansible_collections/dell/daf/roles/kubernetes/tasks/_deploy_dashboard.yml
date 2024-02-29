@@ -1,0 +1,39 @@
+---
+- name: Install dashboard
+  ansible.builtin.shell: >-
+    kubectl apply -f {{ dashboard_url }}
+
+- name: Delete dashboard service
+  ansible.builtin.shell: >-
+    kubectl delete service/kubernetes-dashboard -n kubernetes-dashboard
+
+- name: Create Dashboard Service
+  kubernetes.core.k8s:
+    state: present
+    name: kubernetes-dashboard
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        labels:
+          k8s-app: kubernetes-dashboard
+        name: kubernetes-dashboard
+        namespace: kubernetes-dashboard
+      spec:
+        ports:
+        - nodePort: 30000
+          port: 443
+          protocol: TCP
+          targetPort: 8443
+        selector:
+          k8s-app: kubernetes-dashboard
+        sessionAffinity: None
+        type: NodePort
+
+- name: Create service account to access the dashboard
+  ansible.builtin.shell: >-
+    kubectl create serviceaccount {{ dashboard_serviceaccount }}
+
+- name: Grant admin permissions to the service account
+  ansible.builtin.shell: >-
+    kubectl create clusterrolebinding cluster_role_{{ dashboard_serviceaccount }} --clusterrole=cluster-admin --serviceaccount=default:{{ dashboard_serviceaccount }}

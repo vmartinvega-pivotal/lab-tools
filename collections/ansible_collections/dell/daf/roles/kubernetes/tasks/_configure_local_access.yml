@@ -1,0 +1,72 @@
+---
+- name: Delete temp files
+  ansible.builtin.file:
+    path: "{{ file }}"
+    state: absent
+  become: true
+  loop:
+    - "{{ user_folder }}/{{ kubernetes_user_name }}.key"
+    - "{{ user_folder }}/{{ kubernetes_user_name }}.csr"
+    - "{{ user_folder }}/{{ kubernetes_user_name }}.crt"
+    - "/etc/kubernetes/pki/ca.srl"
+  loop_control:
+    loop_var: file
+
+- name: Create RoleBinding
+  kubernetes.core.k8s:
+    state: present
+    name: "{{ role_binding_name }}"
+    definition:
+      apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: "example-{{ role_binding_name }}"
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: "{{ role_binding_name }}"
+      subjects:
+      - apiGroup: rbac.authorization.k8s.io
+        kind: Group
+        name: "{{ group_name }}"
+
+- name: Create a private key using openssl
+  ansible.builtin.shell: "openssl genrsa -out {{ kubernetes_user_name }}.key 4096"
+
+- name: Create a signing request
+  ansible.builtin.shell: "openssl req -new -key {{ kubernetes_user_name }}.key -out {{ kubernetes_user_name }}.csr -subj \"/CN={{ kubernetes_user_name }}/O={{ group_name }}\""
+
+- name: Create certificate
+  ansible.builtin.shell: "openssl x509 -req -in {{ kubernetes_user_name }}.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out {{ kubernetes_user_name }}.crt -days 3540"
+  become: true
+
+- name: Base64 certificate
+  ansible.builtin.shell: "cat {{ kubernetes_user_name }}.crt | base64 | tr -d '\n'"
+  register: certificate_base64 
+
+- name: Base64 key
+  ansible.builtin.shell: "cat {{ kubernetes_user_name }}.key | base64 | tr -d '\n'"
+  register: key_base64 
+
+- name: Base64 ca certificate
+  ansible.builtin.shell: "cat /etc/kubernetes/pki/ca.crt | base64 | tr -d '\n'"
+  become: true
+  register: ca_certificate_base64 
+
+- name: Create kubeconfig
+  ansible.builtin.set_fact: 
+    kubeconfig_content: "{{ lookup('ansible.builtin.template', 'KubeConfig.yml.j2') | from_yaml }}"
+
+- name: Create a directory if it does not exist
+  ansible.builtin.file:
+    path: "{{ user_folder }}/.kube"
+    state: directory
+    mode: '0755'
+  delegate_to: localhost
+
+- name: Save Kubeconfig to file
+  copy:
+    dest: "{{ user_folder }}/.kube/config"
+    content: "{{ kubeconfig_content }}"
+    mode: '0600'
+  delegate_to: localhost

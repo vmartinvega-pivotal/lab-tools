@@ -1,0 +1,22 @@
+---
+- name: Create user Uri 
+  ansible.builtin.set_fact:
+    dd_users_uri: "https://{{ dd_hostname }}:{{ dd_port }}{{ dd_resources.dd_systems }}/{{ dd_system_id }}/users"
+
+- name: Creation of user
+  ansible.builtin.uri:
+    validate_certs: "{{ dd_validate_certs }}"
+    force_basic_auth: true
+    url: "{{ dd_users_uri }}"
+    method: POST
+    status_code: [201]
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+      X-DD-AUTH-TOKEN: "{{ x_dd_auth_token }}"
+    body_format: json
+    body: "{{ dd_create_user__user }}"
+  register: dd_user_creation_response
+  retries: "{{ dd_uri_retries }}"
+  delay: "{{ dd_uri_delay }}"
+  until: dd_user_creation_response.status == 201

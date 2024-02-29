@@ -1,0 +1,90 @@
+---
+- name: Deploy Streamlit App
+  hosts: localhost
+  gather_facts: false
+  vars:
+    namespace: default
+  tasks:
+    - name: Create Streamlit Deployment
+      kubernetes.core.k8s:
+        state: present
+        namespace: "{{ namespace }}"
+        definition:
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: streamlit-deployment
+            labels:
+              app: streamlit
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: streamlit
+            template:
+              metadata:
+                labels:
+                  app: streamlit
+              spec:
+                containers:
+                  - name: streamlit
+                    image: vmartinvega/streamlit:latest
+                    imagePullPolicy: Always
+                    env:
+                      - name: OPENAI_API_KEY
+                        valueFrom:
+                          secretKeyRef:
+                            name: openai-info
+                            key: password
+                    ports:
+                      - containerPort: 8501
+                    livenessProbe:
+                      httpGet:
+                        path: /_stcore/health
+                        port: 8501
+                        scheme: HTTP
+                      timeoutSeconds: 1
+                    readinessProbe:
+                      httpGet:
+                        path: /_stcore/health
+                        port: 8501
+                        scheme: HTTP
+                      timeoutSeconds: 1
+                    resources:
+                      limits:
+                        cpu: 1
+                        memory: 2Gi
+                      requests:
+                        cpu: 100m
+                        memory: 745Mi
+
+    - name: Create Streamlit Service
+      kubernetes.core.k8s:
+        state: present
+        namespace: "{{ namespace }}"
+        definition:
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: streamlit-service
+          spec:
+            type: LoadBalancer
+            selector:
+              app: streamlit
+            ports:
+              - name: streamlit-port
+                protocol: TCP
+                port: 80
+                targetPort: 8501
+
+    - name: Create OpenAI Secret
+      kubernetes.core.k8s:
+        state: present
+        namespace: "{{ namespace }}"
+        definition:
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: openai-info
+          data:
+            password: "{{ lookup('file', './openai_password.txt') | b64encode }}"

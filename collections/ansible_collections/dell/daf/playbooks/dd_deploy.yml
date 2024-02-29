@@ -1,0 +1,146 @@
+---
+- name: Deploy Data Domain
+  hosts: "{{ variable_hosts }}"
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Set fact for local folder
+      ansible.builtin.set_fact:
+        local_folder: "{{ lookup('env', 'LOCAL_FOLDER') or '/tmp' }}"
+
+    - name: Check if the ova exists locally
+      ansible.builtin.stat:
+        path: "{{ local_folder }}/{{ ova.name }}"
+      register: ova_response
+
+    - name: Download the ova
+      ansible.builtin.include_role:
+        name: dell.daf.vcenter
+        tasks_from: get_from_datastore
+      vars:
+        vc_server: "{{ vcenter_hostname }}"
+        vc_username: "{{ vcenter_username }}"
+        vc_password: "{{ vcenter_password }}"
+        datastore: "{{ datastore_name }}"
+        source_path: "ova/dell/datadomain/{{ ova.name }}"
+        target_path: "{{ local_folder }}/{{ ova.name }}"
+      when: not ova_response.stat.exists
+
+    - name: Deploy ova
+      ansible.builtin.include_role:
+        name: dell.daf.ova
+      vars:
+        vm_name: "{{ name }}"
+        vm_folder: "{{ folder }}"
+
+    - name: Wait and get the IPs for the VM
+      ansible.builtin.include_role:
+        name: dell.daf.vcenter
+        tasks_from: get_ips
+      vars:
+        vc_server: "{{ vcenter_hostname }}"
+        vc_username: "{{ vcenter_username }}"
+        vc_password: "{{ vcenter_password }}"
+        vm_name: "{{ name }}"
+      no_log: true
+
+    - name: Initialize DD
+      ansible.builtin.include_role:
+        name: dell.daf.dd
+        tasks_from: initialize
+      vars:
+        dd_initial_host: "{{ ipv4_output }}"
+        dd_user: sysadmin
+        dd_initial_password: changeme
+        dd_new_password: "{{ config.sysadmin_password }}"
+        dd_user_officer: "{{ config.officer_user }}"
+        dd_user_officer_password: "{{ config.officer_password }}"
+        dd_fqdn: "{{ config.fqdn }}"
+        dd_domain: "{{ config.domain }}"
+        dd_ethv0_ip: "{{ config.network.ethv0.ip }}"
+        dd_ethv0_netmask: "{{ config.network.ethv0.netmask }}"
+        dd_ethv1_ip: "{{ config.network.ethv1.ip }}"
+        dd_ethv1_netmask: "{{ config.network.ethv1.netmask }}"
+        dd_default_gateway: "{{ config.default_gateway }}"
+        dd_dns: "{{ config.dns }}"
+
+    - name: Add disk to Data Domain
+      ansible.builtin.include_role:
+        name: dell.daf.vcenter
+        tasks_from: add_hard_disk
+      vars:
+        vc_server: "{{ vcenter_hostname }}"
+        vc_username: "{{ vcenter_username }}"
+        vc_password: "{{ vcenter_password }}"
+        vm_name: "{{ name }}"
+        datastore: "{{ datastore_name }}"
+        vm_hard_disk_capacity_gb: 400
+        disk_persistence: IndependentPersistent
+        storage_format: Thin
+
+    - name: Pause for 1 minute for the disk to be available in DD
+      ansible.builtin.pause:
+        minutes: 1
+
+    - name: Set facts 
+      ansible.builtin.set_fact:
+        dd_hostname: "{{ inventory_hostname }}"
+        dd_username: sysadmin
+        dd_password: "{{ config.sysadmin_password }}"
+
+    - name: Login dd
+      ansible.builtin.include_role:
+        name: dell.daf.dd
+        tasks_from: login
+
+    - name: DD get disks
+      ansible.builtin.include_role:
+        name: dell.daf.dd
+        tasks_from: get_disks
+
+    - name: Set facts for available disks
+      ansible.builtin.set_fact:
+        datadomain_available_disks: >-
+            {{
+              dd_get_disks_result['json']['diskInfo'] |
+              selectattr("status", "eq", "UNKNOWN") |
+              selectattr("tierType", "eq", "OTHER") |
+              map(attribute='device')
+            }}
+
+    - name: ADD disks to active tier
+      ansible.builtin.include_role:
+        name: dell.daf.dd
+        tasks_from: add_disks_active_tier
+      vars:
+        dd_add_disks__disks: "{{ datadomain_available_disks }}"
+
+    - name: Create FS
+      ansible.builtin.include_role:
+        name: dell.daf.dd
+        tasks_from: fs_operation
+      vars:
+        fs_operation__operation: create
+
+    - name: Enable FS
+      ansible.builtin.include_role:
+        name: dell.daf.dd
+        tasks_from: fs_operation
+      vars:
+        fs_operation__operation: enable
+
+    - name: Answer first login questions
+      ansible.builtin.include_role:
+        name: dell.daf.dd
+        tasks_from: ddve_first_login
+
+    - name: Get ddboost info
+      ansible.builtin.include_role:
+        name: dell.daf.dd
+        tasks_from: get_ddboost
+
+    - name: Enable ddboost
+      ansible.builtin.include_role:
+        name: dell.daf.dd
+        tasks_from: enable_ddboost
+      when: dd_getddboost_response.json.ddboost_status == 'disabled'

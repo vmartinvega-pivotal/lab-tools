@@ -1,0 +1,13 @@
+---
+cr_validate_certs: false
+cr_uri_retries: 1
+cr_uri_delay: 1
+cr_port: 14778
+cr_security_code: "51038"
+
+cr_resources:
+  users: /cr/v7/users
+  login: /cr/v7/login
+  storage: /cr/v7/storage
+  drbackup: /cr/v7/system/drbackup
+  configdrbackup: /cr/v7/system/configdrbackup

@@ -1,0 +1,110 @@
+---
+- name: Setting full path for the ova
+  ansible.builtin.set_fact:
+    full_ova_path: "{{ local_folder }}/{{ ova.name }}"
+
+- name: Setting values
+  ansible.builtin.set_fact:
+    vm_value: "{{ vm_name }}"
+    diskmode_value: "{{ ova.diskmode }}"
+    datastore_value: "{{ datastore_name }}"
+
+- name: Set generic facts for ovftool
+  ansible.builtin.set_fact:
+    args: 
+      - "{{ ovftool_bin }}"
+      - --name={{ vm_value }}
+      - --diskMode={{ diskmode_value }}
+      - --datastore={{ datastore_value }}
+      - --X:injectOvfEnv
+
+- name: Adding accept all eulas
+  ansible.builtin.set_fact:
+    args: "{{ args + ['--acceptAllEulas'] }}"
+  when: acceptAllEulas
+
+- name: Adding ssl verification
+  ansible.builtin.set_fact:
+    args: "{{ args + ['--noSSLVerify'] }}"
+  when: not sslVerify
+
+- name: Adding overwrite
+  ansible.builtin.set_fact:
+    args: "{{ args + ['--overwrite'] }}"
+  when: overwrite
+
+- name: Adding powerOn 
+  ansible.builtin.set_fact:
+    args: "{{ args + ['--powerOn'] + ['--X:waitForIp'] }}"
+  when: powerOn
+
+- name: Adding network properties for the ova
+  ansible.builtin.set_fact:
+    args: "{{ args + ['--net:' + (network.origin | string ) + '=' + (network.target | string )] }}"
+  loop: "{{ ova.network }}"
+  loop_control:
+    loop_var: network
+  when: ova.network is defined
+
+- name: Adding default network properties for the ova
+  ansible.builtin.set_fact:
+    args: "{{ args + ['--net:VM Network=VM Network'] }}"
+  when: ova.network is not defined
+
+- name: Adding deployment option
+  ansible.builtin.set_fact:
+    args: "{{ args + ['--deploymentOption=' + (ova.deployment | string)] }}"
+  when: ova.deployment is defined
+
+- name: Defining default value for is_vcenter_target
+  ansible.builtin.set_fact:
+    is_vcenter_target: false
+
+- name: Setting value for is_vcenter_target
+  ansible.builtin.set_fact:
+    is_vcenter_target: true
+  when: 
+    - cluster_name is defined
+    - datacenter_name is defined
+
+- name: Adding VM folder
+  ansible.builtin.set_fact:
+    args: "{{ args + ['--vmFolder=' + (vm_folder | string)] }}"
+  when: 
+    - is_vcenter_target
+    - vm_folder is defined
+
+- name: Adding custom properties for the ova
+  ansible.builtin.set_fact:
+    args: "{{ args + ['--prop:' + (property.key | string ) + '=' + (property.value | string )] }}"
+  loop: "{{ ova.properties }}"
+  loop_control:
+    loop_var: property
+
+- name: Adding ovftool source
+  ansible.builtin.set_fact:
+    args: "{{ args + [ full_ova_path ] }}"
+
+- name: Defining ovf_target for esxi
+  ansible.builtin.set_fact:
+    ovf_target: "'vi://' + (vcenter_username | string | urlencode) + ':' + (vcenter_password | string | urlencode) + '@' + (vcenter_hostname | string) }}"
+  when: not is_vcenter_target
+
+- name: Defining ovf_target for vcenter
+  ansible.builtin.set_fact:
+    ovf_target: "{{ 'vi://' + (vcenter_username | string | urlencode) + ':' + (vcenter_password | string | urlencode) + '@' + (vcenter_hostname | string) + '/' + (datacenter_name | string) + '/host/' + (cluster_name | string) }}"
+  when: is_vcenter_target
+
+- name: Adding ovftool target
+  ansible.builtin.set_fact:
+    args: "{{ args + [ ovf_target ] }}"
+
+- name: Debug info
+  ansible.builtin.debug:
+    msg: "Command to execute: {{ args }}"
+
+- name: Run ovftool
+  ansible.builtin.command:
+    argv: "{{ args }}"
+  delegate_to: localhost
+  no_log: true

@@ -1,0 +1,24 @@
+---
+- name: Login Uri 
+  ansible.builtin.set_fact:
+    ppdm_login_uri: "https://{{ ppdm_hostname }}:{{ ppdm_port }}{{ ppdm_resources.login }}"
+
+- name: Get PPDM API authentication token
+  ansible.builtin.uri:
+    validate_certs: false
+    url: "{{ ppdm_login_uri }}"
+    method: POST
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+    return_content: true
+    body:
+      username: "{{ ppdm_username }}"
+      password: "{{ ppdm_password }}"
+    body_format: json
+    status_code: 200
+  register: ppdm_login_result
+
+- name: Set outputs
+  ansible.builtin.set_fact:
+    ppdm_auth_token: "{{ ppdm_login_result.json.access_token }}"

@@ -1,0 +1,85 @@
+---
+- name: Deploy client
+  hosts: "{{ variable_hosts }}"
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Include role to deploy vms
+      ansible.builtin.include_role:
+        name: dell.daf.vcenter
+        tasks_from: deploy_vm
+      vars:
+        vm_name: "{{ name }}"
+        vm_template: "{{ template }}"
+        vm_folder: "{{ folder }}"
+        vm_networks: "{{ networks }}"
+        vm_disk: "{{ disk }}"
+        vm_hardware: "{{ hardware }}"
+        vm_dns: "{{ dns }}"
+        vm_domain: "{{ domain }}"
+
+- name: Setup linux vm for testing
+  hosts: "{{ variable_hosts }}"
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Include role to setup the node
+      ansible.builtin.include_role:
+        name: dell.daf.common
+        tasks_from: setup_host.yml
+
+- name: Setup PPDM
+  hosts: "{{ variable_hosts }}"
+  gather_facts: false
+  tasks:
+    - name: Set fact for local folder
+      ansible.builtin.set_fact:
+        local_folder: "{{ lookup('env', 'LOCAL_FOLDER') or '/tmp' }}"
+
+    - name: Set fact for the agent file
+      ansible.builtin.set_fact:
+        fs_agent_file_name: "{{ local_folder }}/{{ config.ppdm.agents.fs }}"
+
+    - name: Check if the FS agent exists locally
+      ansible.builtin.stat:
+        path: "{{ fs_agent_file_name }}"
+      register: fs_agent_response
+
+    - name: Download agent
+      ansible.builtin.include_role:
+        name: dell.daf.vcenter
+        tasks_from: get_from_datastore
+      vars:
+        vc_server: "{{ vcenter_hostname }}"
+        vc_username: "{{ vcenter_username }}"
+        vc_password: "{{ vcenter_password }}"
+        datastore: "{{ datastore_name }}"
+        source_path: "ova/dell/ppdm/agents/{{ config.ppdm.agents.fs }}"
+        target_path: "{{ fs_agent_file_name }}"
+      when: not fs_agent_response.stat.exists
+
+    - name: Copy file agent installation to the server
+      ansible.builtin.copy:
+        src: "{{ fs_agent_file_name }}"
+        dest: "{{ fs_agent_file_name }}"
+        mode: '0644'
+
+    - name: Unarchive the agent
+      ansible.builtin.unarchive:
+        src: "{{ fs_agent_file_name }}"
+        dest: "{{ local_folder }}"
+        remote_src: true
+
+    - name: Debug command to execute
+      ansible.builtin.debug:
+        msg: "cd {{ local_folder }}/fsagent && ./install.sh --server={{ config.ppdm.host }} --client-port={{ config.ppdm.port }} --skip-driver --firewall-exception --preferred-address={{ name }}.{{ domain }}"
+
+    - name: Install and register the agent
+      ansible.builtin.shell: >-
+        cd {{ local_folder }}/fsagent && ./install.sh --server={{ config.ppdm.host }} --client-port={{ config.ppdm.port }} --skip-driver --firewall-exception --preferred-address={{ name }}.{{ domain }}
+      register: register_output
+      become: true
+
+    - name: Debug Info
+      ansible.builtin.debug:
+        var: register_output

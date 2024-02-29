@@ -1,0 +1,175 @@
+---
+- name: Deploy VM
+  community.vmware.vmware_guest:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    validate_certs: "{{ vcenter_validate_certs }}"
+    cluster: "{{ cluster_name }}"
+    datastore: "{{ datastore_name }}"
+    datacenter: "{{ datacenter_name }}"
+    name: "{{ vm_name }}"
+    template: "{{ vm_template }}"
+    folder: "{{ vm_folder }}"
+    networks: "{{ vm_networks }}"
+    disk: "{{ vm_disk }}"
+    hardware: 
+      memory_mb: "{{ ( vm_hardware.memory_gb | int ) * 1024 }}"
+      num_cpus: "{{ vm_hardware.num_cpus }}"
+    customization:
+      domain: "{{ vm_domain }}"
+      dns_servers: "{{ vm_dns }}"
+    wait_for_ip_address: true
+    wait_for_ip_address_timeout: 600
+  delegate_to: localhost
+
+# - name: Get VMs info in folder {{ vm_folder }}
+#   vmware_vm_info:
+#     hostname: "{{ vcenter_hostname }}"
+#     username: "{{ vcenter_username }}"
+#     password: "{{ vcenter_password }}"
+#     validate_certs: "{{ vcenter_validate_certs }}"
+#     folder: "{{ datacenter_name }}/vm/{{ vm_folder }}"
+#     vm_type: vm
+#   register: vms_info
+
+# - name: Get info for VM '{{ vm_name }}'
+#   ansible.builtin.set_fact:
+#     vm_info: "{{ vms_info.virtual_machines | json_query(query) }}"
+#   vars:
+#     query: "[?guest_name=='{{ vm_name }}']"
+
+# - name: Debugging vm_info for VM '{{ vm_name }}'
+#   ansible.builtin.debug:
+#     var: vm_info
+
+# - name: Get moid for VM '{{ vm_name }}'
+#   ansible.builtin.set_fact:
+#     vm_moid: "{{ vm_info[0].moid }}"
+
+# - name: List of interfaces for VM '{{ vm_name }}'
+#   ansible.builtin.set_fact:
+#     requested_vm_macs: "{{ vm_networks | map(attribute='mac') }}"
+
+# - name: Remove NICs for VM '{{ vm_name }}'
+#   community.vmware.vmware_guest_network:
+#     hostname: "{{ vcenter_hostname }}"
+#     username: "{{ vcenter_username }}"
+#     password: "{{ vcenter_password }}"
+#     validate_certs: "{{ vcenter_validate_certs }}"
+#     datacenter: "{{ datacenter_name }}"
+#     name: "{{ vm_name }}"
+#     mac_address: "{{ mac }}"
+#     state: absent
+#   when: 
+#     - not mac in requested_vm_macs
+#   loop: "{{ vm_info[0].mac_address }}"
+#   loop_control:
+#     loop_var: mac
+
+# - name: Change network interfaces for VM '{{ vm_name }}'
+#   community.vmware.vmware_guest_network:
+#     hostname: "{{ vcenter_hostname }}"
+#     username: "{{ vcenter_username }}"
+#     password: "{{ vcenter_password }}"
+#     datacenter: "{{ datacenter_name }}"
+#     validate_certs: "{{ vcenter_validate_certs }}"
+#     name: "{{ vm_name }}"
+#     mac_address: "{{ interface.mac }}"
+#     network_name: "{{ interface.name }}"
+#     device_type: "{{ interface.device_type }}"
+#     connected: true
+#     state: present
+#   loop: "{{ vm_networks }}"
+#   loop_control:
+#     loop_var: interface
+
+# - name: Check that all interfaces are well configured
+#   ansible.builtin.set_fact:
+#     vm_configured_macs: []
+
+# - name: Check that all interfaces are well configured
+#   ansible.builtin.set_fact:
+#     vm_configured_macs: "{{ vm_configured_macs + [ interface.mac ] }}"
+#   when:
+#     - interface.mac in vm_info[0].mac_address
+#     - interface.ip in vm_info[0].vm_network[interface.mac].ipv4
+#   loop: "{{ vm_networks }}"
+#   loop_control:
+#     loop_var: interface
+
+# - name: Set the state to poweroff for VM '{{ vm_name }}'
+#   community.vmware.vmware_guest_powerstate:
+#     hostname: "{{ vcenter_hostname }}"
+#     username: "{{ vcenter_username }}"
+#     password: "{{ vcenter_password }}"
+#     validate_certs: "{{ vcenter_validate_certs }}"
+#     folder: "/{{ datacenter_name }}/vm/{{ vm_folder }}"
+#     moid: "{{ vm_moid }}"
+#     state: powered-off
+#   # When it exists al least one interface that is not configured (ip not correct)
+#   when: 
+#     - vm_configured_macs | length != vm_info[0].mac_address | length
+#       or 
+#       vm_configured_macs == []
+
+# - name: Customize the VM '{{ vm_name }}'
+#   vmware.vmware_rest.vcenter_vm_guest_customization:
+#     vcenter_hostname: "{{ vcenter_hostname }}"
+#     vcenter_username: "{{ vcenter_username }}"
+#     vcenter_password: "{{ vcenter_password }}"
+#     vcenter_validate_certs: "{{ vcenter_validate_certs }}"
+#     vm: "{{ vm_moid }}"
+#     configuration_spec:
+#       linux_config:
+#         domain: "{{ domain }}"
+#         hostname:
+#           fixed_name: "{{ vm_name }}"
+#           type: FIXED
+#     interfaces:
+#     - mac_address: "{{ interface.mac }}"
+#       adapter:
+#         ipv4:
+#           type: STATIC
+#           gateways:
+#           - "{{ interface.gateway }}"
+#           ip_address: "{{ interface.ip }}"
+#           metmask: "{{ interface.netmask }}"
+#     global_DNS_settings:
+#       dns_suffix_list: []
+#       dns_servers:
+#       - 8.8.8.8
+#   loop: "{{ vm_networks }}"
+#   loop_control:
+#     loop_var: interface
+#   # When it exists al least one interface that is not configured (ip not correct)
+#   when: 
+#     - vm_configured_macs | length != vm_info[0].mac_address | length
+#       or 
+#       vm_configured_macs == []
+
+# - name: Set the state to poweron for VM '{{ vm_name }}'
+#   community.vmware.vmware_guest_powerstate:
+#     hostname: "{{ vcenter_hostname }}"
+#     username: "{{ vcenter_username }}"
+#     password: "{{ vcenter_password }}"
+#     validate_certs: "{{ vcenter_validate_certs }}"
+#     folder: "/{{ datacenter_name }}/vm/{{ vm_folder }}"
+#     moid: "{{ vm_moid }}"
+#     state: powered-on
+
+# - name: Gather a virtual machine info
+#   vmware_guest_info:
+#     hostname: "{{ vcenter_hostname }}"
+#     username: "{{ vcenter_username }}"
+#     password: "{{ vcenter_password }}"
+#     validate_certs: "{{ vcenter_validate_certs }}"
+#     datacenter: "{{ datacenter_name }}"
+#     name: "{{ vm_name }}"
+#     schema: vsphere
+#     properties:
+#       - guest.ipAddress
+#   retries: 60
+#   delay: 10
+#   until: gather_vm_info.instance.guest.ipAddress is not none
+#   register: gather_vm_info

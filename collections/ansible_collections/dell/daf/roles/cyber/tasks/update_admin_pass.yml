@@ -1,0 +1,10 @@
+---
+- name: Change password for admin user
+  ansible.builtin.script: >-
+    cyber_update_admin_pass.sh
+    {{ cyber_host }}
+    {{ cyber_user }}
+    {{ cyber_initial_password }}
+    {{ cyber_new_password }}
+  delegate_to: localhost
+  no_log: true

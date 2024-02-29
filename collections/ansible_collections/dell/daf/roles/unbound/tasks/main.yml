@@ -1,0 +1,44 @@
+---
+- name: Set user
+  ansible.builtin.set_fact:
+    set_up_user: vicente
+
+- name: Configure unbound
+  ansible.builtin.template:
+    src: unbound.conf.j2
+    dest: "/home/{{ set_up_user }}/a-records.conf"
+    owner: "{{ set_up_user }}"
+    group: "{{ set_up_user }}"
+    mode: "0644"
+
+- name: Set image name
+  ansible.builtin.set_fact:
+    unbound_image: mvance/unbound:latest
+
+- name: Pull the image
+  community.docker.docker_image:
+    name: "{{ unbound_image }}"
+    source: pull
+
+- name: stop and disable some services
+  ansible.builtin.service:
+    name: "{{ item }}"
+    state: stopped
+    enabled: false
+  loop:
+    - systemd-resolved
+    - ufw
+    
+- name: Start container
+  community.docker.docker_container:
+    name: unbound
+    image: "{{ unbound_image }}"
+    detach: true
+    state: started
+    restart: true
+    volumes:
+      - /home/vicente/a-records.conf:/opt/unbound/etc/unbound/a-records.conf:ro
+    restart_policy: unless-stopped
+    ports:
+     - "53:53/tcp"
+     - "53:53/udp"

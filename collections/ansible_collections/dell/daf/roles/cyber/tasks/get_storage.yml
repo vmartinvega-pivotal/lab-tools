@@ -1,0 +1,18 @@
+---
+- name: Storage Uri 
+  ansible.builtin.set_fact:
+    cr_storage_uri: "https://{{ cr_hostname }}:{{ cr_port }}{{ cr_resources.storage }}"
+    
+- name: Get Storage
+  uri:
+    url: "{{ cr_storage_uri }}"
+    method: GET
+    return_content: yes
+    headers:
+      X-CR-AUTH-TOKEN: "{{ cr_access_token }}"
+    status_code: [200]
+    validate_certs: "{{ cr_validate_certs }}"
+  register: cr_getcrstorage_response
+  retries: "{{ cr_uri_retries }}"
+  delay: "{{ cr_uri_delay }}"
+  until: cr_getcrstorage_response.status == 200

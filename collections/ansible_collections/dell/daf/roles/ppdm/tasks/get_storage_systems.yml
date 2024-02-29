@@ -1,0 +1,20 @@
+---
+- name: Storage System Uri 
+  ansible.builtin.set_fact:
+    ppdm_storage_systems_uri: "https://{{ ppdm_hostname }}:{{ ppdm_port }}{{ ppdm_resources.storage_systems }}"
+
+- name: Get Storage systems
+  ansible.builtin.uri:
+    validate_certs: false
+    url: "{{ ppdm_storage_systems_uri }}"
+    method: GET
+    headers:
+      Accept: application/json
+      Authorization: "Bearer {{ ppdm_auth_token }}"
+    return_content: true
+    status_code: 200
+  register: ppdm_storage_result
+
+- name: Set outputs
+  ansible.builtin.set_fact:
+    ppdm_storage_system: "{{ ppdm_storage_result.json.content | selectattr('name', 'equalto', dd_system) | first }}"

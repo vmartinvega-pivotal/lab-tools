@@ -1,0 +1,131 @@
+---
+- name: Deploy VMs
+  hosts: "{{ variable_hosts }}"
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Set values for hardware
+      ansible.builtin.set_fact:
+        resized_hardware:
+          memory_gb: "{{ varible_memory_per_node }}"
+          num_cpus: "{{ varible_cpu_per_node }}"
+      when: 
+        - varible_memory_per_node is defined
+        - varible_cpu_per_node is defined
+
+    - name: Set values for hardware
+      ansible.builtin.set_fact:
+        resized_hardware: "{{ hardware }}"
+      when: 
+        - varible_memory_per_node is not defined
+        - varible_cpu_per_node is not defined
+
+    - name: Include role to deploy vms
+      ansible.builtin.include_role:
+        name: dell.daf.vcenter
+        tasks_from: deploy_vm
+      vars:
+        vm_name: "{{ name }}"
+        vm_template: "{{ template }}"
+        vm_folder: "{{ folder }}"
+        vm_networks: "{{ networks }}"
+        vm_disk: "{{ disk }}"
+        vm_hardware: "{{ resized_hardware }}"
+        vm_dns: "{{ dns }}"
+        vm_domain: "{{ domain }}"
+
+    - name: Wait 600 seconds for target connection to become reachable/usable
+      ansible.builtin.wait_for_connection:
+        delay: 60
+        timeout: 300
+
+- name: Setup Nodes
+  hosts: "{{ variable_hosts }}"
+  gather_facts: false
+  become: false
+  tasks:
+    - name: Set user for set up
+      ansible.builtin.set_fact:
+        user_set_up: vicente
+
+    - name: Include role to configure node
+      ansible.builtin.include_role:
+        name: dell.daf.common
+        tasks_from: setup_windows_host.yml
+      when: inventory_hostname in groups['windows_nodes']
+
+    - name: Include role to configure ubuntu jump host
+      when: inventory_hostname in groups['linux_nodes']
+      block:
+        - name: Setup host
+          ansible.builtin.include_role:
+            name: dell.daf.common
+            tasks_from: _setup_ubuntu.yml
+
+        - name: Setup jumphost execpt alfa
+          when: name != "alfa"
+          block:
+            - name: Create a directory if it does not exist
+              ansible.builtin.file:
+                path: "/home/{{ user_set_up }}/{{ folder }}"
+                state: directory
+                mode: '0755'
+                owner: "{{ user_set_up }}"
+                group: "{{ user_set_up }}"
+              loop:
+                - .kube
+                - conda
+                - Downloads
+                - .movies_radarr
+                - .config_radarr
+                - .downloads_radarr
+              loop_control:
+                loop_var: folder
+              become: true
+
+            - name: Clone some repos
+              ansible.builtin.git:
+                repo: "{{ repo.url }}"
+                dest: "/home/{{ user_set_up }}/{{ repo.path }}"
+              loop:
+                - url: git@github.com:vmartinvega-pivotal/lab-tools.git
+                  path: lab-tools
+                - url: git@github.com:vmartinvega-pivotal/cyber-recovery-accelerator.git
+                  path: cyber-recovery-accelerator
+              loop_control:
+                loop_var: repo
+              become: true
+              become_user: "{{ user_set_up }}"
+
+        # - name: Setup alfa server
+        #   when: name == "alfa"
+        #   block:
+        #     - name: Setup host
+        #       ansible.builtin.include_role:
+        #         name: dell.daf.common
+        #         tasks_from: install_miniconda.yml
+
+        #     - name: Create conda environments
+        #       ansible.builtin.shell: "{{ conda_environment }}"
+        #       args:
+        #         executable: /bin/bash
+        #       become: true
+        #       loop:
+        #         - /opt/miniconda3/bin/conda create -k -y -n python27 python=2.7
+        #         #- /opt/miniconda3/bin/conda create -k -y -n fastai -c fastai fastai pip ipykernel
+        #         #- /opt/miniconda3/bin/conda create -k -y -n pytorch2 -c pytorch -c nvidia pytorch=2.1.0 torchvision=0.16.0 torchaudio=2.1.0 pytorch-cuda=11.8 ipykernel pip
+        #       loop_control: 
+        #         loop_var: conda_environment
+        #       become_user: "{{ user_set_up }}"
+
+        #     - name: Clone some repos
+        #       ansible.builtin.git:
+        #         repo: "{{ repo.url }}"
+        #         dest: "/home/{{ user_set_up }}/{{ repo.path }}"
+        #       loop:
+        #         - url: git@github.com:alfa-addon/alfa-repo.git
+        #           path: alfa-repo
+        #       loop_control:
+        #         loop_var: repo
+        #       become: true
+        #       become_user: "{{ user_set_up }}"

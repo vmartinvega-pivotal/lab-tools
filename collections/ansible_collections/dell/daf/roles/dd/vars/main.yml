@@ -1,0 +1,12 @@
+---
+dd_uri_retries: 3
+dd_uri_delay: 1
+set_x_dd_auth_token: true
+
+dd_validate_certs: false
+dd_port: 3009
+dd_resources:
+  login: /rest/v1.0/auth
+  system: /rest/v1.0/system
+  dd_systems: /rest/v1.0/dd-systems
+  api_dd_systems: /api/v1/dd-systems

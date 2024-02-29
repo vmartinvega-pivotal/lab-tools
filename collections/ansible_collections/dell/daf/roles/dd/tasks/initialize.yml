@@ -1,0 +1,19 @@
+---
+- name: Initialize dd
+  ansible.builtin.script: >-
+    initialize.sh
+    {{ dd_initial_host }}
+    {{ dd_user }}
+    {{ dd_initial_password | quote }}
+    {{ dd_new_password | quote}}
+    {{ dd_user_officer }}
+    {{ dd_user_officer_password | quote }}
+    {{ dd_fqdn }}
+    {{ dd_domain }}
+    {{ dd_ethv0_ip }}
+    {{ dd_ethv0_netmask }}
+    {{ dd_ethv1_ip }}
+    {{ dd_ethv1_netmask }}
+    {{ dd_default_gateway }}
+    {{ dd_dns }}
+  delegate_to: localhost

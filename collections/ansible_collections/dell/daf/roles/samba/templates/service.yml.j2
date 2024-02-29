@@ -1,0 +1,12 @@
+[Unit]
+Description=Download videos
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/home/{{ user_set_up }}
+ExecStart=/usr/local/bin/flask --app download run -h 0.0.0.0
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

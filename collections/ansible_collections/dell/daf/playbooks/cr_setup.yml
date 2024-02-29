@@ -1,0 +1,72 @@
+---
+- name: Deploy OVAs for Cyber Recovery
+  hosts: "{{ variable_hosts }}"
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Set fact for local folder
+      ansible.builtin.set_fact:
+        local_folder: "{{ lookup('env', 'LOCAL_FOLDER') or '/tmp' }}"
+
+    - name: Add CR host
+      ansible.builtin.add_host:
+        hostname: "cr"
+        ansible_ssh_host: "{{ inventory_hostname }}"
+        ansible_user: admin
+        ansible_sudo_user: root
+        ansible_connection: ssh
+        ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+        ansible_python_interpreter: /usr/bin/python3.6
+        ansible_password: "changeme"
+        ansible_sudo_pass: "changeme"
+        lockbox_password: "{{ config.lockbox_password }}"
+        crso_password: "{{ config.crso_password }}"
+        mongodb_password: "{{ config.mongodb_password }}"
+        admin_password: "{{ config.admin_password }}"
+        root_password: "{{ config.root_password }}"
+      no_log: true
+
+- name: Deploy CR software
+  hosts: cr
+  gather_facts: false
+  tasks:
+    - name: Install pexpect offline
+      ansible.builtin.include_role:
+        name: dell.daf.common
+        tasks_from: install_pexpect
+
+    - name: Deploy CR software
+      ansible.builtin.expect:
+        command: /opt/dellemc/cr/bin/crsetup.sh --deploy
+        responses:
+          (.*)lockbox(.*)passphrase(.*): "{{ lockbox_password }}"
+          (.*)Confirm lockbox(.*)passphrase(.*): "{{ lockbox_password }}"
+          (.*)MongoDb(.*)password(.*): "{{ mongodb_password }}"
+          (.*)Confirm MongoDb's password(.*): "{{ mongodb_password }}"
+          (.*)crso(.*)password(.*): "{{ crso_password }}"
+          (.*)Confirm(.*)crso(.*)password(.*): "{{ crso_password }}"
+        timeout: 3600
+      become: true
+
+    - name: Update Admin Password
+      ansible.builtin.include_role:
+        name: dell.daf.cyber
+        tasks_from: update_admin_pass
+      vars:
+        ansible_connection: local
+        cyber_host: "{{ ansible_ssh_host }}"
+        cyber_user: admin
+        cyber_initial_password: changeme
+        cyber_new_password: "{{ admin_password }}"
+
+    - name: Update Root Password
+      ansible.builtin.include_role:
+        name: dell.daf.cyber
+        tasks_from: update_root_pass
+      vars:
+        ansible_connection: local
+        cyber_host: "{{ ansible_ssh_host }}"
+        cyber_user: admin
+        cyber_user_password: "{{ admin_password }}"
+        cyber_root_password: changeme
+        cyber_new_root_password: "{{ root_password }}"

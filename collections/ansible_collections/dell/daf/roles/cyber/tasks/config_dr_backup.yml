@@ -1,0 +1,22 @@
+---
+- name: Config DR backup Uri 
+  ansible.builtin.set_fact:
+    cr_dr_backup_config_uri: "https://{{ cr_hostname }}:{{ cr_port }}{{ cr_resources.configdrbackup }}"
+
+- name: Config DR backup
+  uri:
+    url: "{{ cr_dr_backup_config_uri }}"
+    method: PATCH
+    return_content: yes
+    headers:
+      X-CR-AUTH-TOKEN: "{{ cr_access_token }}"
+    status_code: [200]
+    validate_certs: "{{ cr_validate_certs }}"
+    body_format: json
+    body:
+      mgmtddId: "{{ config_dr_backup__mgmtddId }}"
+      mtreeName: "{{ config_dr_backup__mtree }}"
+  register: cr_drconfigbackup_response
+  retries: "{{ cr_uri_retries }}"
+  delay: "{{ cr_uri_delay }}"
+  until: cr_drconfigbackup_response.status == 200

@@ -1,0 +1,98 @@
+---
+- name: Create DD Users
+  hosts: "{{ variable_hosts }}"
+  gather_facts: false
+  connection: local
+  tasks:
+    - name: Set facts
+      ansible.builtin.set_fact:
+        dd_hostname: "{{ inventory_hostname }}"
+        dd_username: sysadmin
+        dd_password: "{{ config.sysadmin_password }}" 
+
+    - name: Login dd
+      ansible.builtin.include_role:
+        name: dell.daf.dd
+        tasks_from: login
+
+    - name: Set fact default password for all users
+      ansible.builtin.set_fact:
+        default_password: "{{ config.users_password }}"
+
+    - name: Get all users
+      ansible.builtin.include_role:
+        name: dell.daf.dd
+        tasks_from: get_users
+
+    # Creates all users in DD that where the UID is not neccesary
+    - name: Create users in dd
+      ansible.builtin.include_role:
+        name: dell.daf.dd
+        tasks_from: create_user
+      vars:
+        dd_create_user__user: "{{ user | combine({'password': default_password}) }}"
+      when:
+        - dd_getusers_response.json.user | selectattr('id', '==', user.name) | length == 0
+      loop: "{{ config.users | rejectattr('uid', 'defined') }}"
+      loop_control:
+        loop_var: user
+
+    - name: Create users in dd
+      ansible.builtin.include_role:
+        name: dell.daf.dd
+        tasks_from: create_user_with_uid
+      vars:
+        dd_create_user__user: "{{ user | combine({'password': default_password}) }}"
+      when:
+        - dd_getusers_response.json.user | selectattr('id', '==', user.name) | length == 0
+      loop: "{{ config.users | selectattr('uid', 'defined') }}"
+      loop_control:
+        loop_var: user
+
+    - name: Find a users with security role and status enabled
+      ansible.builtin.set_fact:
+        read_dd_officer_users: "{{ dd_getusers_response.json.user | selectattr('role', '==', 'security') | selectattr('status', '==', 'enabled') }}"
+
+    - name: Init officer user
+      ansible.builtin.set_fact:
+        read_dd_officer_user: {}
+
+    - name: Get officer user
+      ansible.builtin.set_fact:
+        read_dd_officer_user: "{{ read_dd_officer_users | first }}"
+      when: read_dd_officer_users | length > 0
+
+    - name: If no officer user, create one
+      when: read_dd_officer_user == {}
+      block:
+        # Creates officer user
+        - name: Create users in dd
+          ansible.builtin.include_role:
+            name: dell.daf.dd
+            tasks_from: create_user_with_uid
+          vars:
+            dd_create_user__user:
+              force_password_change: false
+              max_days_between_change: 99999
+              name: "{{ config.officer_user }}"
+              password: "{{ config.officer_password }}"
+              role: security
+              uid: 560
+              warn_days_before_expire: 7
+
+    - name: Get all mtrees in dd
+      ansible.builtin.include_role:
+        name: dell.daf.dd
+        tasks_from: get_mtrees
+
+    - name: Create mtree in dd
+      ansible.builtin.include_role:
+        name: dell.daf.dd
+        tasks_from: create_mtree
+      vars:
+        create_mtree__name: "{{ mtree.name }}"
+      when:
+        - dd_getmtrees_response.json.mtree | selectattr('name', '==', mtree.name) | length == 0
+      loop: "{{ config.mtrees }}"
+      loop_control:
+        loop_var: mtree

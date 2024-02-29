@@ -1,0 +1,116 @@
+---
+- name: Stop and disable services
+  ansible.builtin.systemd:
+    name: "{{ service }}"
+    state: stopped
+    enabled: no
+    masked: no
+    daemon_reload: yes
+  loop:
+    - ufw 
+  loop_control:
+    loop_var: service
+
+- name: Install some packages
+  ansible.builtin.apt:
+    name: "{{ package }}"
+    state: present
+    update_cache: yes
+  loop: 
+    - curl
+    - net-tools
+    - wget
+    - git
+    - unzip
+    - docker.io
+  loop_control:
+    loop_var: package
+
+- name: Update apt-get repo and cache
+  ansible.builtin.apt: 
+    update_cache: yes 
+    force_apt_get: yes 
+    cache_valid_time: 3
+    
+- name: Install samba server
+  ansible.builtin.apt:
+    name: samba
+    state: present
+
+- name: Create a mountable directory for sharing
+  ansible.builtin.file:
+    path: "{{ share }}" 
+    state: directory
+    mode: '0775'
+    owner: daf
+    group: daf
+    recurse: yes
+
+- name: Change directory owner
+  ansible.builtin.file:
+    path: /srv
+    owner: daf
+    group: daf
+    recurse: yes
+    state: directory
+
+- name: Add lines to /etc/samba/smb.conf
+  ansible.builtin.lineinfile:
+    path: /etc/samba/smb.conf
+    regexp: "^{{ line }}"
+    line: "{{ line }}"
+  loop: 
+    - "[share]"
+    - "  comment = Ubuntu File Server Share"
+    - "  path = {{ share }}"
+    - "  browsable = yes"
+    - "  guest ok = yes"
+    - "  read only = no"
+    - "  writeable = yes"
+    - "  write list = daf"
+    - "  write list = daf"
+    - "  create mask = 0644"
+    - "  force user = daf"
+  loop_control:
+    loop_var: line
+
+- name: Enable and start services
+  ansible.builtin.systemd:
+    name: "{{ service }}"
+    state: started
+    enabled: yes
+    masked: no
+    daemon_reload: yes
+  loop:
+    - smbd.service 
+    - nmbd.service
+  loop_control:
+    loop_var: service
+
+- name: Copy cr_automation
+  ansible.builtin.copy:
+    src: cr_automation
+    dest: "/usr/local/bin"
+    mode: '0755'
+    owner: daf
+    group: daf
+
+- name: Copy rc.local
+  ansible.builtin.copy:
+    src: rc.local
+    dest: "/etc"
+    mode: '0755'
+
+- name: Copy customization.service
+  ansible.builtin.copy:
+    src: customization.service
+    dest: "/etc/systemd/system"
+    mode: '0644'
+
+- name: Copy cr_project.json
+  ansible.builtin.copy:
+    src: cr_project.json
+    dest: "{{ share }}"
+    mode: '0644'
+    owner: daf
+    group: daf

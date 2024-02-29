@@ -1,0 +1,62 @@
+---
+- name: Create Storage and Disaster recovery for Cyber Recovery
+  hosts: "{{ variable_hosts }}"
+  connection: local
+  tasks:
+    - name: Set facts
+      ansible.builtin.set_fact:
+        cr_hostname: "{{ inventory_hostname }}"
+        cr_username: "{{ config.users[0].name }}"
+        cr_password: "{{ config.users_password }}" 
+
+    - name: Login to cr with user
+      ansible.builtin.include_role:
+        name: dell.daf.cyber
+        tasks_from: login
+
+    - name: Get all configured storage
+      ansible.builtin.include_role:
+        name: dell.daf.cyber
+        tasks_from: get_storage
+
+    - name: Add Storage
+      ansible.builtin.include_role:
+        name: dell.daf.cyber
+        tasks_from: add_storage
+      vars:
+        cr_add_storage__nickname: "{{ config.storage.nickname }}"
+        cr_add_storage__hostname: "{{ config.storage.dd_hostname }}"
+        cr_add_storage__username: "{{ config.storage.dd_username }}"
+        cr_add_storage__password: "{{ config.storage.dd_password }}"
+      when: cr_getcrstorage_response.json['items'] | selectattr('nickname', '==', config.storage.nickname) | length == 0
+
+    - name: Get Storage for newly created storage
+      ansible.builtin.include_role:
+        name: dell.daf.cyber
+        tasks_from: get_storage
+      when: cr_getcrstorage_response.json['items'] | selectattr('nickname', '==', config.storage.nickname) | length == 0
+
+    - name: Set mtree name for the DR
+      ansible.builtin.set_fact:
+        cr_dr_backup_mtree: "{{ config.disaster_recovery.mtree }}"
+        cr_dr_backup_dd_id: "{{ cr_getcrstorage_response.json['items'] | selectattr('nickname', '==', config.storage.nickname) | map(attribute='id') | first }}"
+
+    - name: Get DR backup
+      ansible.builtin.include_role:
+        name: dell.daf.cyber
+        tasks_from: get_dr_backup
+
+    - name: Patch DR backup
+      ansible.builtin.include_role:
+        name: dell.daf.cyber
+        tasks_from: patch_dr_backup
+      when: not cr_drbackup_response.json.enabled
+
+    - name: Config DR backup
+      ansible.builtin.include_role:
+        name: dell.daf.cyber
+        tasks_from: config_dr_backup
+      vars:
+        config_dr_backup__mgmtddId: "{{ cr_dr_backup_dd_id }}"
+        config_dr_backup__mtree: "{{ cr_dr_backup_mtree }}"
+      when: not cr_drbackup_response.json.enabled

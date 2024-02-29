@@ -1,0 +1,19 @@
+---
+- name: Copy packages to install
+  ansible.builtin.copy:
+    src: "{{ package }}"
+    dest: /tmp
+  loop:
+    - ptyprocess-0.7.0-py2.py3-none-any.whl
+    - pexpect-4.8.0-py2.py3-none-any.whl
+  loop_control:
+    loop_var: package
+
+- name: Install pexpect
+  ansible.builtin.shell: "/usr/bin/python3.6 -m pip install /tmp/{{ package }} --no-index --find-links '/tmp'"
+  loop:
+    - ptyprocess-0.7.0-py2.py3-none-any.whl
+    - pexpect-4.8.0-py2.py3-none-any.whl
+  loop_control:
+    loop_var: package
+  become: true

@@ -1,0 +1,118 @@
+---
+- name: Deploy VMs for k8s
+  hosts: "{{ variable_master_hosts }}:{{ variable_worker_hosts }}"
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Set values for hardware
+      ansible.builtin.set_fact:
+        resized_hardware:
+          memory_gb: "{{ varible_memory_per_node }}"
+          num_cpus: "{{ varible_cpu_per_node }}"
+
+    - name: Set values for hardware
+      ansible.builtin.set_fact:
+        resized_hardware: "{{ hardware }}"
+      when: cluster_size != "small"
+
+    - name: Include role to deploy vms
+      ansible.builtin.include_role:
+        name: dell.daf.vcenter
+        tasks_from: deploy_vm
+      vars:
+        vm_name: "{{ name }}"
+        vm_template: "{{ template }}"
+        vm_folder: "{{ folder }}"
+        vm_networks: "{{ networks }}"
+        vm_disk: "{{ disk }}"
+        vm_hardware: "{{ resized_hardware }}"
+        vm_dns: "{{ dns }}"
+        vm_domain: "{{ domain }}"
+
+- name: Deploy VMs for nfs
+  hosts: nfs
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Include role to deploy vms
+      ansible.builtin.include_role:
+        name: dell.daf.vcenter
+        tasks_from: deploy_vm
+      vars:
+        vm_name: "{{ name }}"
+        vm_template: "{{ template }}"
+        vm_folder: "{{ folder }}"
+        vm_networks: "{{ networks }}"
+        vm_disk: "{{ disk }}"
+        vm_hardware: "{{ hardware }}"
+        vm_dns: "{{ dns }}"
+        vm_domain: "{{ domain }}"
+
+# - name: Setup Windows Nodes
+#   hosts: windows_nodes
+#   gather_facts: false
+#   become: false
+#   tasks:
+#     - name: Include role to configure node
+#       ansible.builtin.include_role:
+#         name: dell.daf.common
+#         tasks_from: setup_windows_host.yml
+
+- name: Setup Nodes
+  hosts: "{{ variable_master_hosts }}:{{ variable_worker_hosts }}"
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Include role to setup the node
+      ansible.builtin.include_role:
+        name: dell.daf.common
+        tasks_from: setup_host.yml
+
+    - name: Include role to setup the node
+      ansible.builtin.include_role:
+        name: dell.daf.kubernetes
+        tasks_from: setup_host.yml
+
+- name: Setup Kubernetes masters
+  hosts: "{{ variable_master_hosts }}"
+  gather_facts: false
+  tasks:
+    - name: Include role to setup the master
+      ansible.builtin.include_role:
+        name: dell.daf.kubernetes
+        tasks_from: setup_master.yml
+
+- name: Setup Kubernetes workers
+  hosts: "{{ variable_worker_hosts }}"
+  gather_facts: false
+  tasks:
+    - name: Include role to setup the master
+      ansible.builtin.include_role:
+        name: dell.daf.kubernetes
+        tasks_from: setup_worker.yml
+
+- name: Setup NFS service
+  hosts: nfs
+  gather_facts: true
+  become: true
+  tasks:
+    - name: Include role to setup NFS server
+      ansible.builtin.include_role:
+        name: dell.daf.nfs
+
+- name: Setup CSI driver for NFS service
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Include role to setup the server
+      ansible.builtin.include_role:
+        name: dell.daf.nfs
+        tasks_from: _setup_csi_driver.yml
+
+- name: Setup Metallb LoadBalancer
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Include role to setup Metanollb
+      ansible.builtin.include_role:
+        name: dell.daf.metallb

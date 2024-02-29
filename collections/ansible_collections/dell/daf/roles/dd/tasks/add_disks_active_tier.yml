@@ -1,0 +1,24 @@
+---
+- name: Add Disks Uri 
+  ansible.builtin.set_fact:
+    dd_add_disks_uri: "https://{{ dd_hostname }}:{{ dd_port }}{{ dd_resources.api_dd_systems }}/{{ dd_system_id }}/file-systems/block-storages"
+
+- name: Debug info
+  ansible.builtin.debug:
+    var: dd_add_disks_uri
+
+- name: Add Disks
+  ansible.builtin.uri:
+    validate_certs: false
+    url: "{{ dd_add_disks_uri }}"
+    method: PUT
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+      X-DD-AUTH-TOKEN: "{{ x_dd_auth_token }}"
+    body_format: json
+    body:
+      disks: "{{ dd_add_disks__disks }}"
+    return_content: true
+    status_code: 200
+  register: dd_add_disks_active_tier_result

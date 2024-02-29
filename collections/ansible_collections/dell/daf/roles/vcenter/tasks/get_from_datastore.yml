@@ -1,0 +1,19 @@
+---
+- name: Debug info
+  ansible.builtin.debug:
+    msg: "Downloading file {{ source_path }} from datastore {{ datastore }}"
+
+- name: Download file from Datastore
+  ansible.builtin.script: >-
+    get_from_datastore.ps1
+    -vc_server "{{ vc_server }}"
+    -vc_username "{{ vc_username }}"
+    -vc_password "{{ vc_password }}"
+    -datastore "{{ datastore }}"
+    -source_path "{{ source_path }}"
+    -target_path "{{ target_path }}"
+  args:
+    executable: /usr/bin/pwsh
+  environment:
+    NO_COLOR: "True"
+  delegate_to: localhost

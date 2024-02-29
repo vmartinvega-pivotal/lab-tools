@@ -1,0 +1,16 @@
+---
+- name: Create the file /etc/sysctl.d/k8s.conf
+  ansible.builtin.copy:
+    dest: "/etc/sysctl.d/k8s.conf"
+    content: |
+      net.bridge.bridge-nf-call-ip6tables = 1
+      net.bridge.bridge-nf-call-iptables = 1
+
+- name: Reload variables from sysctl
+  ansible.builtin.shell: sysctl --system
+
+- name: Include role to setup host
+  ansible.builtin.include_role:
+    name: dell.daf.kubernetes
+    tasks_from: setup_host_ubuntu.yml
+  when: ansible_distribution == "Ubuntu"

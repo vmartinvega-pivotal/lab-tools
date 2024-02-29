@@ -1,0 +1,99 @@
+---
+- name: Update apt-get repo and cache
+  ansible.builtin.apt: 
+    update_cache: yes 
+    force_apt_get: yes 
+    cache_valid_time: 3
+    
+- name: Install samba server
+  ansible.builtin.apt:
+    name: samba
+    state: present
+
+- name: Create a mountable directory for sharing
+  ansible.builtin.file:
+    path: "{{ share }}" 
+    state: directory
+    owner: nobody
+    group: nogroup
+    mode: '0755'
+
+- name: Add lines to /etc/samba/smb.conf
+  ansible.builtin.lineinfile:
+    path: /etc/samba/smb.conf
+    regexp: "^{{ line }}"
+    line: "{{ line }}"
+  loop: 
+    - "[share]"
+    - "  comment = Ubuntu File Server Share"
+    - "  path = {{ share }}"
+    - "  browsable = yes"
+    - "  guest ok = yes"
+    - "  read only = no"
+    - "  create mask = 0755"
+  loop_control:
+    loop_var: line
+
+- name: Add lines to /etc/samba/smb.conf
+  ansible.builtin.lineinfile:
+    path: /etc/samba/smb.conf
+    regexp: "^{{ line }}"
+    line: "{{ line }}"
+  loop: 
+    - "[share]"
+    - "  comment = Ubuntu File Server Share"
+    - "  path = {{ share }}"
+    - "  browsable = yes"
+    - "  guest ok = yes"
+    - "  read only = no"
+    - "  craete mask = 0755"
+  loop_control:
+    loop_var: line
+
+- name: Enable and start services
+  ansible.builtin.systemd:
+    name: "{{ service }}"
+    state: started
+    enabled: yes
+    masked: no
+    daemon_reload: yes
+  loop:
+    - smbd.service 
+    - nmbd.service
+  loop_control:
+    loop_var: service
+
+- name: Install some python packages
+  ansible.builtin.pip:
+    name: "{{ package }}"
+  loop:
+    - yt-dlp
+    - Flask
+  loop_control:
+    loop_var: package
+
+- name: Copy flask files
+  ansible.builtin.include_role:
+    name: dell.daf.samba
+    tasks_from: _copy_files.yml
+
+- name: Create service for downloading the videos
+  ansible.builtin.template:
+    src: service.yml.j2
+    dest: /etc/systemd/system/downloadvideos.service
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Restart service
+  ansible.builtin.systemd_service:
+    state: restarted
+    daemon_reload: true
+    name: downloadvideos
+
+- name: Load the videos
+  ansible.builtin.uri:
+    url: http://samba.home.local:5000/load
+    method: GET
+    return_content: false
+    timeout: 600

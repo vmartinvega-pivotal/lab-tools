@@ -1,0 +1,18 @@
+---
+- name: Get users Uri 
+  ansible.builtin.set_fact:
+    cr_get_users_uri: "https://{{ cr_hostname }}:{{ cr_port }}{{ cr_resources.users }}"
+
+- name: Get Users
+  uri:
+    url: "{{ cr_get_users_uri }}"
+    method: GET
+    return_content: yes
+    headers:
+      X-CR-AUTH-TOKEN: "{{ cr_access_token }}"
+    status_code: [200]
+    validate_certs: "{{ cr_validate_certs }}"
+  register: cr_getusers_response
+  retries: "{{ cr_uri_retries }}"
+  delay: "{{ cr_uri_delay }}"
+  until: cr_getusers_response.status == 200

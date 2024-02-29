@@ -1,0 +1,1163 @@
+---
+all:
+  children:
+    lab:
+      children:
+        linux_nodes: 
+        windows_nodes:
+      vars:
+        # VCenter conf
+        vcenter_hostname: 192.168.1.101
+        vcenter_username: administrator@home.local
+        vcenter_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          34333964633963343734393333306636313463313037303164643665373963376262333662383564
+          6363666365626261383162303036666461393333633836330a623034353962306438393563666436
+          64303061353930373436346637313162653439336261653233653439303932373833303730306262
+          3661356231373161380a383963613837326638326538346165386637363861613133353664373434
+          6336
+        vcenter_validate_certs: false
+        datacenter_name: Home
+        cluster_name: Home-Cluster
+        datastore_name: datastore1
+    windows_nodes:
+      children:
+        jumpwin:
+        marina:
+        darkweb:
+      vars:
+        ansible_user: rainpole
+        ansible_password: "{{ lookup('env','ANSIBLE_WIN_USER_PASS') }}"
+        ansible_connection: winrm
+        ansible_winrm_port: 5985
+        ansible_winrm_scheme: http
+        ansible_winrm_transport: ntlm
+        ansible_winrm_server_cert_validation: ignore
+    esxis:
+      children:
+        esxi73:
+    cr_lab:
+      children:
+        crvault:
+        ddvault:
+        ddprod:
+        testlinuxvm:
+        ppdmprod:
+    8ks_lab:
+      children:
+        masters:
+        workers:
+        nfs:
+    linux_nodes:
+      children:
+        masters:
+        workers:
+        dns:
+        nfs:
+        samba:
+        jumpcr:
+        zorin:
+        ai:
+        jumplab:
+        crvault:
+        ddvault:
+        ddprod:
+        esxi73:
+        avamarvault:
+        ppdmprod:
+        testlinuxvm:
+      vars:
+        # Ansible conf (TODO: add to Dockerfile)
+        ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+        # Kubernetes Conf
+        kubernetes_version: 1.26.5-00
+        # Dns Conf
+        unbound_version: "1.17.1"
+        unbound_temporary_directory: /tmp
+        unbound_insecure_domains:
+          - home.local
+        unbound_interfaces: 
+          - "0.0.0.0"
+          - ::0
+        unbound_port: 53
+        unbound_access_control:
+          - subnet: 192.168.1.0/24
+            action: 'allow'
+          - subnet: 192.168.0.0/24
+            action: 'allow'
+          - subnet: 127.0.0.0/8
+            action: 'allow'
+          - subnet: 10.0.1.0/24
+            action: 'allow'
+          - subnet: 10.0.2.0/24
+            action: 'allow'
+          - subnet: 10.0.3.0/24
+            action: 'allow'
+          - subnet: 127.0.0.0/8
+            action: 'allow'
+        unbound_forward_zones:
+          - zone: '.'
+            forward_addresses:
+              - 8.8.8.8
+              - 8.8.4.4
+        unbound_zones:
+          - zone: 'home.local'
+            a_records:
+              - name: 'esxi'
+                ip: 192.168.1.100
+              - name: 'vcenter'
+                ip: 192.168.1.101
+              - name: 'worker1'
+                ip: 192.168.1.124
+              - name: 'master1'
+                ip: 192.168.1.125
+              - name: 'worker2'
+                ip: 192.168.1.126
+              - name: 'nfs'
+                ip: 192.168.1.128
+              - name: 'dns'
+                ip: 192.168.1.130
+              - name: 'crvault'
+                ip: 192.168.1.140
+              - name: 'ddvault'
+                ip: 192.168.1.141
+              - name: 'ddvaultethv0'
+                ip: 192.168.1.141
+              - name: 'ddvaultethv1'
+                ip: 192.168.1.142
+              - name: 'ddprod'
+                ip: 192.168.1.143
+              - name: 'ddprodethv0'
+                ip: 192.168.1.143
+              - name: 'ddprodethv1'
+                ip: 192.168.1.144
+              - name: 'avamarvault'
+                ip: 192.168.1.145
+              - name: 'avamarprod'
+                ip: 192.168.1.146
+              - name: 'ppdmprod'
+                ip: 192.168.1.147
+              - name: 'testlinuxvm'
+                ip: 192.168.1.148
+              - name: 'ppdmvault'
+                ip: 192.168.1.149
+              - name: 'concourse'
+                ip: 192.168.1.151
+              - name: 'gitea'
+                ip: 192.168.1.152
+              - name: 'harbor'
+                ip: 192.168.1.153
+              - name: 'minio'
+                ip: 192.168.1.154
+              - name: 'kubeapps'
+                ip: 192.168.1.155
+              - name: 'consul'
+                ip: 192.168.1.156
+              - name: 'prometheus'
+                ip: 192.168.1.157
+              - name: 'alertmanager'
+                ip: 192.168.1.158
+              - name: 'jenkins'
+                ip: 192.168.1.159
+              - name: 'esxi73'
+                ip: 192.168.1.160
+              - name: 'gitlab'
+                ip: 192.168.1.161
+              - name: 'grafana'
+                ip: 192.168.1.162
+              - name: 'jumpwin'
+                ip: 192.168.1.163
+              - name: 'marina'
+                ip: 192.168.1.164
+              - name: 'jumplab'
+                ip: 192.168.1.165
+              - name: 'ai'
+                ip: 192.168.1.166
+              - name: 'mlflow'
+                ip: 192.168.1.167
+              - name: 'localai'
+                ip: 192.168.1.171
+              - name: 'darkweb'
+                ip: 192.168.1.172
+              - name: 'libreelec'
+                ip: 192.168.1.173
+              - name: 'samba'
+                ip: 192.168.1.174
+              - name: 'zorin'
+                ip: 192.168.1.175
+              - name: 'jumpautomation'
+                ip: 192.168.1.176
+    testlinuxvm:
+      hosts:
+        192.168.1.148:
+          name: testlinuxvm
+          folder: "Lab VMs/crs/prod" 
+          domain: "home.local"
+          config:
+            ppdm:
+              host: ppdmprod.home.local
+              port: 7000
+              agents:
+                fs: fsagent1914_linux_x86_64.tar.gz
+          template: linux-ubuntu-22.04-main
+          hardware:
+            memory_gb: 1
+            num_cpus: 1
+          disk:
+            - size_gb: 300
+              type: thin
+              datastore: datastore1
+          dns:
+            - 192.168.1.130
+          networks:
+            - name: "VM Network"
+              device_type: vmxnet3
+              mac: "aa:ab:10:11:1a:1a"
+              gateway: 192.168.1.1
+              ip: 192.168.1.148
+              netmask: 255.255.255.0
+    ppdmprod:
+      hosts:
+        192.168.1.147:
+          name: ppdmprod
+          folder: "Lab VMs/crs/prod"
+          domain: home.local
+          config:
+            ppdm: 
+              username: admin
+              password: !vault |
+                $ANSIBLE_VAULT;1.1;AES256
+                39656433643662633865653361313364656230363262336266346266303266643064646535663365
+                3263656366336239386363643761316263366636393062320a396366363865653936306362326665
+                38663736666635363637663931353662626162343933656139653131316135643266393631323562
+                6535323931346130300a656238383631306131643631653635366463666436393533626435356164
+                3763
+            data_domain:
+              host: ddprod.home.local
+              port: 3009
+              username: ppdmint
+              password: !vault |
+                $ANSIBLE_VAULT;1.1;AES256
+                39656433643662633865653361313364656230363262336266346266303266643064646535663365
+                3263656366336239386363643761316263366636393062320a396366363865653936306362326665
+                38663736666635363637663931353662626162343933656139653131316135643266393631323562
+                6535323931346130300a656238383631306131643631653635366463666436393533626435356164
+                3763
+          ova: 
+            name: dellemc-ppdm-sw-19.14.0-20.ova
+            diskmode: thin
+            deployment: vmware
+            cpus: 8
+            network:
+              - origin: "VM Network"
+                target: "VM Network"
+            properties:
+              - key: vami.ip0.brs
+                value: 192.168.1.147
+              - key: vami.gateway.brs
+                value: 192.168.1.1
+              - key: vami.netmask0.brs
+                value: 255.255.255.0
+              - key: vami.DNS.brs
+                value: 192.168.1.130
+              - key: vami.fqdn.brs
+                value: ppdmprod.home.local
+    avamarprod:
+      hosts:
+        192.168.1.146:
+          name: avamarprod
+          folder: CRS/Prod
+          domain: home.local
+          ova: 
+            name: AVE-19.8.0.83.ova
+            diskmode: thin
+            network:
+              - origin: "VM Network"
+                target: "VM Network"
+            properties:
+              - key: vami.ipv4.Avamar_Virtual_Edition
+                value: 192.168.1.146/255.255.255.0
+              - key: vami.gatewayv4.Avamar_Virtual_Edition
+                value: 192.168.1.1
+              - key: vami.DNS.Avamar_Virtual_Edition
+                value: 192.168.1.130
+              - key: vami.searchpaths.Avamar_Virtual_Edition
+                value: home.local
+              - key: vami.FQDN.Avamar_Virtual_Edition
+                value: avamarprod.home.local
+              - key: vami.NTP.Avamar_Virtual_Edition
+                value: es.pool.ntp.org
+    avamarvault:
+      hosts:
+        192.168.1.145:
+          name: avamarvault
+          folder: CRS/Vault
+          domain: home.local
+          ova: 
+            name: AVE-19.8.0.83.ova
+            diskmode: thin
+            network:
+              - origin: "VM Network"
+                target: "VM Network"
+            properties:
+              - key: vami.ipv4.Avamar_Virtual_Edition
+                value: 192.168.1.145/255.255.255.0
+              - key: vami.gatewayv4.Avamar_Virtual_Edition
+                value: 192.168.1.1
+              - key: vami.DNS.Avamar_Virtual_Edition
+                value: 192.168.1.130
+              - key: vami.searchpaths.Avamar_Virtual_Edition
+                value: home.local
+              - key: vami.FQDN.Avamar_Virtual_Edition
+                value: avamarvault.home.local
+              - key: vami.NTP.Avamar_Virtual_Edition
+                value: es.pool.ntp.org
+    esxi73:
+      hosts:
+        192.168.1.160:
+          name: esxi73
+          folder: "Lab VMs"
+          domain: home.local
+          ova:
+            name: esxi73.ova
+            diskmode: thin
+            network:
+              - origin: "VM Network"
+                target: "VM Network"
+            properties:
+              - key: guestinfo.hostname
+                value: esxi73.home.local
+              - key: guestinfo.ipaddress
+                value: 192.168.1.160
+              - key: guestinfo.netmask
+                value: 255.255.255.0
+              - key: guestinfo.gateway
+                value: 192.168.1.1
+              - key: guestinfo.dns
+                value: 192.168.1.130
+              - key: guestinfo.domain
+                value: home.local
+              - key: guestinfo.ntp
+                value: es.pool.ntp.org
+              - key: guestinfo.password
+                value: VMware1!
+              - key: guestinfo.createvmfs
+                value: false
+    ddvault:
+      hosts:
+        192.168.1.141:
+          name: ddvault
+          folder: "Lab VMs/crs/vault"
+          domain: home.local
+          config: 
+            default_gateway: 192.168.1.1
+            sysadmin_password: !vault |
+              $ANSIBLE_VAULT;1.1;AES256
+              39656433643662633865653361313364656230363262336266346266303266643064646535663365
+              3263656366336239386363643761316263366636393062320a396366363865653936306362326665
+              38663736666635363637663931353662626162343933656139653131316135643266393631323562
+              6535323931346130300a656238383631306131643631653635366463666436393533626435356164
+              3763
+            dns: 192.168.1.130
+            domain: home.local
+            fqdn: ddvault.home.local
+            officer_user: secofficer
+            officer_password: !vault |
+              $ANSIBLE_VAULT;1.1;AES256
+              36363632646337653832363332326436653137343963616563386637383634363439626461303835
+              3531333139613862646231386432353830623337356331610a636230333862326637626434376138
+              66353831313262346138333261666635316236653034346335633464373830383136653739653661
+              3531363061393861320a633633643130376534386137313336316231666432363630376461383465
+              66343865373964396634326637303636613638613139343839333032656230653835
+            users_password: !vault |
+              $ANSIBLE_VAULT;1.1;AES256
+              39656433643662633865653361313364656230363262336266346266303266643064646535663365
+              3263656366336239386363643761316263366636393062320a396366363865653936306362326665
+              38663736666635363637663931353662626162343933656139653131316135643266393631323562
+              6535323931346130300a656238383631306131643631653635366463666436393533626435356164
+              3763
+            network:
+              ethv0:
+                ip: 192.168.1.141
+                netmask: 255.255.255.0
+              ethv1:  
+                ip: 192.168.1.142
+                netmask: 255.255.255.0
+            mtrees:
+              - name: /data/col1/DRCyberRecovery
+            users: 
+              - force_password_change: false
+                max_days_between_change: 99999
+                name: crint
+                role: admin
+                uid: 550
+                warn_days_before_expire: 7
+          ova:
+            name: ddve-7.10.1.1-1049892.ova
+            diskmode: thin
+            network:
+              - origin: "VM Network 1"
+                target: "VM Network"
+              - origin: "VM Network 2"
+                target: "VM Network"
+            properties: []
+    ddprod:
+      hosts:
+        192.168.1.143:
+          name: ddprod
+          folder: "Lab VMs/crs/prod"
+          domain: home.local
+          config: 
+            default_gateway: 192.168.1.1
+            sysadmin_password: !vault |
+              $ANSIBLE_VAULT;1.1;AES256
+              39656433643662633865653361313364656230363262336266346266303266643064646535663365
+              3263656366336239386363643761316263366636393062320a396366363865653936306362326665
+              38663736666635363637663931353662626162343933656139653131316135643266393631323562
+              6535323931346130300a656238383631306131643631653635366463666436393533626435356164
+              3763
+            dns: 192.168.1.130
+            domain: home.local
+            fqdn: ddprod.home.local
+            officer_user: secofficer
+            officer_password: !vault |
+              $ANSIBLE_VAULT;1.1;AES256
+              36363632646337653832363332326436653137343963616563386637383634363439626461303835
+              3531333139613862646231386432353830623337356331610a636230333862326637626434376138
+              66353831313262346138333261666635316236653034346335633464373830383136653739653661
+              3531363061393861320a633633643130376534386137313336316231666432363630376461383465
+              66343865373964396634326637303636613638613139343839333032656230653835
+            users_password: !vault |
+              $ANSIBLE_VAULT;1.1;AES256
+              39656433643662633865653361313364656230363262336266346266303266643064646535663365
+              3263656366336239386363643761316263366636393062320a396366363865653936306362326665
+              38663736666635363637663931353662626162343933656139653131316135643266393631323562
+              6535323931346130300a656238383631306131643631653635366463666436393533626435356164
+              3763
+            network:
+              ethv0:
+                ip: 192.168.1.143
+                netmask: 255.255.255.0
+              ethv1:  
+                ip: 192.168.1.144
+                netmask: 255.255.255.0
+            mtrees:
+              - name: /data/col1/DRCyberRecovery
+            users: 
+              - force_password_change: false
+                max_days_between_change: 99999
+                name: crint
+                role: admin
+                uid: 550
+                warn_days_before_expire: 7
+              - force_password_change: false
+                max_days_between_change: 99999
+                name: ppdmint
+                role: admin
+                uid: 566
+                warn_days_before_expire: 7
+          ova:
+            name: ddve-7.10.1.1-1049892.ova
+            diskmode: thin
+            network:
+              - origin: "VM Network 1"
+                target: "VM Network"
+              - origin: "VM Network 2"
+                target: "VM Network"
+            properties: []
+    crvault:
+      hosts:
+        192.168.1.140:
+          name: crvault
+          folder: "Lab VMs/crs/vault"
+          domain: home.local
+          config:
+            storage:
+              nickname: ddvault
+              dd_hostname: ddvault.home.local
+              dd_username: crint
+              dd_password: !vault |
+                $ANSIBLE_VAULT;1.1;AES256
+                39656433643662633865653361313364656230363262336266346266303266643064646535663365
+                3263656366336239386363643761316263366636393062320a396366363865653936306362326665
+                38663736666635363637663931353662626162343933656139653131316135643266393631323562
+                6535323931346130300a656238383631306131643631653635366463666436393533626435356164
+                3763
+            disaster_recovery:
+              mtree: /data/col1/DRCyberRecovery
+            lockbox_password: !vault |
+              $ANSIBLE_VAULT;1.1;AES256
+              35636236666232663164623437353762343536326531613433343366343830326532613739386538
+              6338356235326161396536363138373339353263666166640a626664656138366236383935393230
+              38633466306432373832626661303135323265356637353063623336393134636533333232653239
+              3435653232313765640a643933653931396465386333353533396230303134366232373532396431
+              31336165373333303663313533663261303438353761636330626134346137353134
+            crso_password: !vault |
+              $ANSIBLE_VAULT;1.1;AES256
+              66306364383537303961346339363333353039336139653931643363633435366566303965313635
+              6339616163346564343565376632346238323635666463620a663361626232396465663032383163
+              66343765373630653630303266336337393435343431356164383264623130303961373039653564
+              3038646363383933610a643638353631373430316562313164636635656339313634623366376666
+              3833
+            mongodb_password: !vault |
+              $ANSIBLE_VAULT;1.1;AES256
+              62376337313037353138386137643238646265376437343436356466363665643937643433373634
+              3634396366633566656364646537393661313661346538620a353430666634376662616137393536
+              33623930356466373333303139386131306431326266306161323732363261633338333836633365
+              6561626431343632390a643965303335363062353564373264643030386636636335623239323431
+              62643737313736313263386338663231303331323030656236313734306637613231
+            users_password: !vault |
+              $ANSIBLE_VAULT;1.1;AES256
+              39656433643662633865653361313364656230363262336266346266303266643064646535663365
+              3263656366336239386363643761316263366636393062320a396366363865653936306362326665
+              38663736666635363637663931353662626162343933656139653131316135643266393631323562
+              6535323931346130300a656238383631306131643631653635366463666436393533626435356164
+              3763
+            admin_password: !vault |
+              $ANSIBLE_VAULT;1.1;AES256
+              39656433643662633865653361313364656230363262336266346266303266643064646535663365
+              3263656366336239386363643761316263366636393062320a396366363865653936306362326665
+              38663736666635363637663931353662626162343933656139653131316135643266393631323562
+              6535323931346130300a656238383631306131643631653635366463666436393533626435356164
+              3763
+            root_password: !vault |
+              $ANSIBLE_VAULT;1.1;AES256
+              39656433643662633865653361313364656230363262336266346266303266643064646535663365
+              3263656366336239386363643761316263366636393062320a396366363865653936306362326665
+              38663736666635363637663931353662626162343933656139653131316135643266393631323562
+              6535323931346130300a656238383631306131643631653635366463666436393533626435356164
+              3763
+            users:
+              - email: noreply@cyberrecovery
+                first_name: cradmin
+                last_name: admin
+                name: cradmin
+                role: admin
+          ova:
+            name: dellemc-cyber-recovery-19.14.0.2-16.ova
+            diskmode: thin
+            network:
+              - origin: "VM Network"
+                target: "VM Network"
+            properties:
+              - key: vami.ip0.brs
+                value: 192.168.1.140
+              - key: vami.gateway.brs
+                value: 192.168.1.1
+              - key: vami.netmask0.brs
+                value: 255.255.255.0
+              - key: vami.DNS.brs
+                value: 192.168.1.130
+              - key: vami.fqdn.brs
+                value: crvault.home.local
+              - key: vami.timezone.brs
+                value: Europe/Madrid
+              - key: vami.NTP.brs
+                value: es.pool.ntp.org
+    jumpwin:
+      hosts:
+        192.168.1.163:
+          name: jumpwin
+          folder: "Lab VMs/jumphosts"
+          domain: "home.local"
+          template: windows-server-2022-standard-dexp-main
+          hardware:
+            memory_gb: 4
+            num_cpus: 4
+          disk:
+            - size_gb: 100
+              type: thin
+              datastore: datastore1
+          dns:
+            - 192.168.1.130
+          networks:
+            - name: "VM Network"
+              device_type: vmxnet3
+              mac: "aa:13:4f:17:26:cc" 
+              gateway: 192.168.1.1
+              ip: 192.168.1.163
+              netmask: 255.255.255.0
+    jumplab:
+      hosts:
+        192.168.1.165:
+          name: jumplab
+          folder: "Lab VMs/jumphosts"
+          domain: "home.local"
+          template: linux-ubuntu-22.04-main
+          hardware:
+            memory_gb: 4
+            num_cpus: 4
+          disk:
+            - size_gb: 300
+              type: thin
+              datastore: datastore1
+          dns:
+            - 192.168.1.130
+          networks:
+            - name: "VM Network"
+              device_type: vmxnet3
+              mac: "cc:24:5f:27:26:cc" 
+              gateway: 192.168.1.1
+              ip: 192.168.1.165
+              netmask: 255.255.255.0
+    darkweb:
+      hosts:
+        192.168.1.172:
+          name: darkweb
+          folder: "Lab VMs/jumphosts"
+          domain: "home.local"
+          template: windows-server-2022-standard-dexp-main
+          hardware:
+            memory_gb: 4
+            num_cpus: 4
+          disk:
+            - size_gb: 300
+              type: thin
+              datastore: datastore1
+          dns:
+            - 192.168.1.130
+          networks:
+            - name: "VM Network"
+              device_type: vmxnet3
+              mac: "bb:33:4f:18:15:aa" 
+              gateway: 192.168.1.1
+              ip: 192.168.1.172
+              netmask: 255.255.255.0
+    ai:
+      hosts:
+        192.168.1.166:
+          name: ai
+          folder: "Lab VMs/jumphosts"
+          domain: "home.local"
+          template: linux-ubuntu-22.04-main
+          hardware:
+            memory_gb: 8
+            num_cpus: 8
+          disk:
+            - size_gb: 300
+              type: thin
+              datastore: datastore1
+          dns:
+            - 192.168.1.130
+          networks:
+            - name: "VM Network"
+              device_type: vmxnet3
+              mac: "bc:13:4a:15:26:1c" 
+              gateway: 192.168.1.1
+              ip: 192.168.1.166
+              netmask: 255.255.255.0
+    marina:
+      hosts:
+        192.168.1.164:
+          name: marina
+          folder: "Lab VMs/jumphosts"
+          domain: "home.local"
+          template: windows-server-2022-standard-dexp-main
+          hardware:
+            memory_gb: 4
+            num_cpus: 4
+          disk:
+            - size_gb: 100
+              type: thin
+              datastore: datastore1
+          dns:
+            - 192.168.1.130
+          networks:
+            - name: "VM Network"
+              device_type: vmxnet3
+              mac: "bb:24:5b:16:1a:ab" 
+              gateway: 192.168.1.1
+              ip: 192.168.1.164
+              netmask: 255.255.255.0
+    dns:
+      hosts:
+        192.168.1.130:
+          name: dns
+          folder: "Lab VMs" 
+          domain: "home.local"
+          template: linux-ubuntu-22.04-main
+          hardware:
+            memory_gb: 1
+            num_cpus: 1
+          disk:
+            - size_gb: 600
+              type: thin
+              datastore: datastore1
+          dns:
+            - 8.8.8.8
+          networks:
+            - name: "VM Network"
+              device_type: vmxnet3
+              mac: "aa:aa:11:11:12:10"
+              gateway: 192.168.1.1
+              ip: 192.168.1.130
+              netmask: 255.255.255.0
+            - name: "10.0.1.0/24"
+              device_type: vmxnet3
+              mac: "fe:50:e2:81:9e:51"
+              gateway: 10.0.1.254
+              ip: 10.0.1.1
+              netmask: 255.255.255.0
+            - name: "10.0.2.0/24"
+              device_type: vmxnet3
+              mac: "1e:7b:44:bb:76:72"
+              gateway: 10.0.2.254
+              ip: 10.0.2.1
+              netmask: 255.255.255.0
+    masters:
+      hosts:
+        192.168.1.125:
+          name: master1
+          folder: "Lab VMs/k8s" 
+          domain: "home.local"
+          template: linux-ubuntu-22.04-main
+          hardware:
+            memory_gb: 8
+            num_cpus: 4
+          disk:
+            - size_gb: 300
+              type: thin
+              datastore: datastore1
+          dns:
+            #- 8.8.8.8
+            - 192.168.1.130
+          networks:
+            - name: "VM Network"
+              device_type: vmxnet3
+              mac: "aa:aa:11:10:10:10"
+              gateway: 192.168.1.1
+              ip: 192.168.1.125
+              netmask: 255.255.255.0
+    workers:
+      hosts:
+        192.168.1.124:
+          name: worker1
+          folder: "Lab VMs/k8s" 
+          domain: "home.local"
+          template: linux-ubuntu-22.04-main
+          hardware:
+            memory_gb: 8
+            num_cpus: 4
+          disk:
+            - size_gb: 300
+              type: thin
+              datastore: datastore1
+          dns:
+            #- 8.8.8.8
+            - 192.168.1.130
+          networks:
+            - name: "VM Network"
+              device_type: vmxnet3
+              mac: "aa:aa:11:10:10:10"
+              gateway: 192.168.1.1
+              ip: 192.168.1.124
+              netmask: 255.255.255.0
+        192.168.1.126:
+          name: worker2
+          folder: "Lab VMs/k8s" 
+          domain: "home.local"
+          template: linux-ubuntu-22.04-main
+          hardware:
+            memory_gb: 8
+            num_cpus: 4
+          disk:
+            - size_gb: 300
+              type: thin
+              datastore: datastore1
+          dns:
+            # - 8.8.8.8
+            - 192.168.1.130
+          networks:
+            - name: "VM Network"
+              device_type: vmxnet3
+              mac: "aa:aa:11:10:10:10"
+              gateway: 192.168.1.1
+              ip: 192.168.1.126
+              netmask: 255.255.255.0
+    tools:
+      hosts:
+        gitlab:
+          namespace: tools
+          chart: gitlab/gitlab
+          helm_chart_version: 7.0
+          helm_chart_values:
+            global:
+              edition: ce
+              ingress:
+                enabled: true
+                configureCertmanager: false
+                externalIP: 192.168.1.161
+                annotations:
+                  metallb.universe.tf/loadBalancerIPs: 192.168.1.161
+                tls:
+                  enabled: false
+              hosts:
+                domain: home.local
+                externalIP: 192.168.1.161
+                https: false
+                gitlab:
+                  name: gitlab.home.local
+                  https: false
+              # Disable Rails bootsnap cache (temporary)
+              rails:
+                bootsnap:
+                  enabled: false
+              shell:
+                # Configure the clone link in the UI to include the high-numbered NodePort
+                # value from below (`gitlab.gitlab-shell.service.nodePort`)
+                port: 32022
+            # Don't use certmanager, we'll self-sign
+            certmanager:
+              install: false
+            # Use the `ingress` addon, not our Ingress (can't map 22/80/443)
+            nginx-ingress:
+              enabled: true
+            # Save resources, only 3 CPU
+            prometheus:
+              install: false
+            gitlab-runner:
+              install: false
+            # Reduce replica counts, reducing CPU & memory requirements
+            gitlab:
+              webservice:
+                minReplicas: 1
+                maxReplicas: 1
+              sidekiq:
+                minReplicas: 1
+                maxReplicas: 1
+              gitlab-shell:
+                minReplicas: 1
+                maxReplicas: 1
+                # Map gitlab-shell to a high-numbered NodePort to support cloning over SSH since
+                # Minikube takes port 22.
+                service:
+                  type: NodePort
+                  nodePort: 32022
+            registry:
+              hpa:
+                minReplicas: 1
+                maxReplicas: 1
+        kubeflow:
+          frontend:
+            # service:
+            #   type: LoadBalancer
+            #   annotations:
+            #     # Request a well defined IP to be able to set DNS records
+            #     metallb.universe.tf/loadBalancerIPs: 192.168.1.150
+            username: admin
+            password: !vault |
+              $ANSIBLE_VAULT;1.1;AES256
+              39656433643662633865653361313364656230363262336266346266303266643064646535663365
+              3263656366336239386363643761316263366636393062320a396366363865653936306362326665
+              38663736666635363637663931353662626162343933656139653131316135643266393631323562
+              6535323931346130300a656238383631306131643631653635366463666436393533626435356164
+              3763
+          backend:
+            # This context appears in the .kube/config file after k8s is deployed. 
+            # If nothing is changed the name is this one
+            context: daf-kubernetes-ctx
+            kubeflow_channel: 1.7/stable
+        jenkins:
+          namespace: tools
+          frontend:
+            service:
+              type: LoadBalancer
+              annotations:
+                # Request a well defined IP to be able to set DNS records
+                metallb.universe.tf/loadBalancerIPs: 192.168.1.159
+          backend:
+            limit_cpu: "2.0"
+            limit_memory: "2.0"
+            request_cpu: 2Gi
+            request_memory: 2Gi
+          kubernetes_master: master1.home.local
+          github_password: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            31653838653834316331623435376534363833646565343933393062653362636562646637316161
+            3066323866633062663132656630633634373335346537350a303633353632656262376430363161
+            35326634396535353339373866303661313733363664633962323833306631383637396264323032
+            6631313332613430630a376530633439303461383261326335376534306132336237386131333936
+            31366331616663323162653634323933633838616466613636636634623935663063633632303064
+            6637336132613734353735333935666366373530636365316530
+          docker_password: !vault |
+            $ANSIBLE_VAULT;1.1;AES256
+            66323731643130633062373235653763663366393730303163343539643733383334353833623461
+            3662643933643239383765366538333562396633373664630a313130356664323030623636333331
+            61333437663661316639393838366233326262373032643438353931373937383461646535383766
+            3733646261353131650a653532666161633731636237393061633238376261623866333732613065
+            66643334386138343765303733356564643864663466663061396137383064393439
+        mlflow:
+          namespace: tools
+          chart: bitnami/mlflow
+          helm_chart_version: 0.2.2
+          helm_chart_values:
+            tracking:
+              service:
+                type: LoadBalancer
+                annotations:
+                  # Request a well defined IP to be able to set DNS records
+                  metallb.universe.tf/loadBalancerIPs: 192.168.1.167
+              ports:
+                http: 80
+        kubeapps:
+          namespace: tools
+          chart: bitnami/kubeapps
+          helm_chart_version: 13.1.1
+          helm_chart_values:
+            frontend:
+              service:
+                type: LoadBalancer
+                annotations:
+                  # Request a well defined IP to be able to set DNS records
+                  metallb.universe.tf/loadBalancerIPs: 192.168.1.155
+              ports:
+                http: 80
+        grafana:
+          namespace: tools
+          chart: bitnami/grafana
+          helm_chart_version: 9.2.5
+          helm_chart_values:
+            service:
+              type: LoadBalancer
+              annotations:
+                metallb.universe.tf/loadBalancerIPs: "192.168.1.162"
+        prometheus:
+          namespace: tools
+          chart: bitnami/prometheus
+          helm_chart_version: 0.3.2
+          helm_chart_values:
+            alertmanager:
+              service:
+                annotations:
+                  # Request a well defined IP to be able to set DNS records
+                  metallb.universe.tf/loadBalancerIPs: 192.168.1.158
+            server:
+              service:
+                annotations:
+                  # Request a well defined IP to be able to set DNS records
+                  metallb.universe.tf/loadBalancerIPs: 192.168.1.157
+        concourse:
+          # https://github.com/bitnami/charts/tree/main/bitnami/concourse
+          namespace: tools
+          chart: bitnami/concourse
+          helm_chart_version: 2.2.1
+          helm_chart_values:
+            web:
+              externalUrl: concourse.home.local
+            service:
+              web:
+                annotations:
+                  # Request a well defined IP to be able to set DNS records
+                  metallb.universe.tf/loadBalancerIPs: 192.168.1.151
+                ports:
+                  http: 80
+                  https: 443
+            worker:
+              replicaCount: 4
+              extraEnvVars:
+                # https://concourse-ci.org/concourse-worker.html#containerd-runtime
+                - name: CONCOURSE_CONTAINERD_MAX_CONTAINERS
+                  value: "1000"
+        gitea:
+          # https://github.com/bitnami/charts/tree/main/bitnami/gitea
+          namespace: tools
+          chart: bitnami/gitea
+          helm_chart_version: 0.3.2
+          helm_chart_values:
+            adminUsername: admin
+            rootURL: http://gitea.home.local
+            service:
+              annotations:
+                # Request a well defined IP to be able to set DNS records
+                metallb.universe.tf/loadBalancerIPs: 192.168.1.152
+              ports:
+                http: 80
+                ssh: 22
+            persistence:
+              size: 50Gi
+        harbor:
+          # https://github.com/bitnami/charts/tree/main/bitnami/harbor/#installing-the-chart
+          namespace: tools
+          chart: bitnami/harbor
+          helm_chart_version: 16.6.6
+          helm_chart_values:
+            externalURL: https://harbor.home.local
+            persistence:
+              persistentVolumeClaim:
+                registry:
+                  size: 100Gi
+            service:
+              annotations:
+                # Request a well defined IP to be able to set DNS records
+                metallb.universe.tf/loadBalancerIPs: 192.168.1.153
+              ports:
+                http: 80
+                https: 443
+                notary: 30445
+        minio:
+          # https://github.com/bitnami/charts/tree/main/bitnami/minio/#installing-the-chart
+          namespace: tools
+          chart: bitnami/minio
+          helm_chart_version: 12.6.4
+          helm_chart_values:
+            mode: distributed
+            service:
+              ports:
+                console: 443
+              annotations:
+                # Request a well defined IP to be able to set DNS records
+                metallb.universe.tf/loadBalancerIPs: 192.168.1.154
+            persistence:
+              size: 50Gi
+        weaviate:
+          # https://github.com/weaviate/weaviate-helm/tree/master/weaviate
+          namespace: tools
+          chart: weaviate/weaviate
+          helm_chart_version: 16.7.0
+          helm_chart_values:
+            service:
+              annotations:
+                # Request a well defined IP to be able to set DNS records
+                metallb.universe.tf/loadBalancerIPs: 192.168.1.170
+        localai:
+          # https://github.com/weaviate/weaviate-helm/tree/master/weaviate
+          namespace: tools
+          chart: go-skynet/local-ai
+          helm_chart_version: 2.1.2
+          helm_chart_values:
+            replicaCount: 1
+            deployment:
+              image: quay.io/go-skynet/local-ai:latest ##(This is for CPU only, to use GPU change it to a image that supports GPU IE "v1.40.0-cublas-cuda12")
+              env:
+                threads: 4
+                context_size: 512
+              modelsPath: "/models"
+            resources:
+              {}
+            # Prompt templates to include
+            # Note: the keys of this map will be the names of the prompt template files
+            promptTemplates:
+              {}
+              # ggml-gpt4all-j.tmpl: |
+              #   The prompt below is a question to answer, a task to complete, or a conversation to respond to; decide which and write an appropriate response.
+              #   ### Prompt:
+              #   {{.Input}}
+              #   ### Response:
+            # Models to download at runtime
+            models:
+              # Whether to force download models even if they already exist
+              forceDownload: false
+              # The list of URLs to download models from
+              # Note: the name of the file will be the name of the loaded model
+              list:
+              - url: "https://gpt4all.io/models/gguf/replit-code-v1_5-3b-q4_0.gguf"
+                  # basicAuth: base64EncodedCredentials
+              persistence:
+                pvc:
+                  enabled: true
+                  size: 20Gi
+                  accessModes:
+                    - ReadWriteOnce
+                  annotations: {}
+            service:
+              type: LoadBalancer
+              port: 80
+              annotations:
+                metallb.universe.tf/loadBalancerIPs: 192.168.1.171
+            ingress:
+              enabled: false
+            nodeSelector: {}
+            tolerations: []
+            affinity: {}
+    nfs:
+      hosts:
+        192.168.1.128:
+          name: nfs
+          folder: "Lab VMs/k8s" 
+          domain: "home.local"
+          template: linux-ubuntu-22.04-main
+          hardware:
+            memory_gb: 2
+            num_cpus: 2
+          disk:
+            - size_gb: 300
+              type: thin
+              datastore: datastore1
+          dns:
+            - 8.8.8.8
+          networks:
+            - name: "VM Network"
+              device_type: vmxnet3
+              mac: "aa:ab:11:11:10:bb"
+              gateway: 192.168.1.1
+              ip: 192.168.1.128
+              netmask: 255.255.255.0
+    samba:
+      hosts:
+        192.168.1.174:
+          name: samba
+          folder: "Lab VMs" 
+          domain: "home.local"
+          template: linux-ubuntu-22.04-main
+          hardware:
+            memory_gb: 8
+            num_cpus: 4
+          disk:
+            - size_gb: 300
+              type: thin
+              datastore: datastore1
+          dns:
+            - 8.8.8.8
+          networks:
+            - name: "VM Network"
+              device_type: vmxnet3
+              mac: "cc:12:13:22:15:bb"
+              gateway: 192.168.1.1
+              ip: 192.168.1.174
+              netmask: 255.255.255.0
+    jumpcr:
+      hosts:
+        192.168.1.176:
+          name: jumpcr
+          folder: "Lab VMs" 
+          domain: "home.local"
+          template: linux-ubuntu-22.04-main
+          hardware:
+            memory_gb: 2
+            num_cpus: 2
+          disk:
+            - size_gb: 300
+              type: thin
+              datastore: datastore1
+          dns:
+            - 8.8.8.8
+          networks:
+            - name: "VM Network"
+              device_type: vmxnet3
+              mac: "aa:12:42:11:16:aa"
+              gateway: 192.168.1.1
+              ip: 192.168.1.176
+              netmask: 255.255.255.0
+    zorin:
+      hosts:
+        192.168.1.175:
+          name: zorin
+          folder: "Lab VMs/jumphosts" 
+          domain: "home.local"
+          template: zorin-16-03-lite
+          hardware:
+            memory_gb: 8
+            num_cpus: 4
+          disk:
+            - size_gb: 300
+              type: thin
+              datastore: datastore1
+          dns:
+            - 8.8.8.8
+          networks:
+            - name: "VM Network"
+              device_type: vmxnet3
+              mac: "aa:bc:14:33:15:c1"
+              gateway: 192.168.1.1
+              ip: 192.168.1.175
+              netmask: 255.255.255.0

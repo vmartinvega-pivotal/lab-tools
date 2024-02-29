@@ -1,0 +1,46 @@
+---
+- name: Setup PPDM Client
+  hosts: "{{ variable_hosts }}"
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Set facts
+      ansible.builtin.set_fact:
+        ppdm_hostname: "{{ inventory_hostname }}"
+        ppdm_username: "{{ config.ppdm.username }}"
+        ppdm_password: "{{ config.ppdm.password }}"
+
+    - name: PPDM login
+      ansible.builtin.include_role:
+        name: dell.daf.ppdm
+        tasks_from: login
+
+    - name: Get Credential
+      ansible.builtin.include_role:
+        name: dell.daf.ppdm
+        tasks_from: get_credential
+      vars:
+        cred_name: cred_dd
+
+    - name: Get Storage System
+      ansible.builtin.include_role:
+        name: dell.daf.ppdm
+        tasks_from: get_storage_systems
+      vars:
+        dd_system: ddprod.home.local
+
+    - name: Create Storage Unit
+      ansible.builtin.include_role:
+        name: dell.daf.ppdm
+        tasks_from: create_storage_unit_dd
+      vars:
+        credential_id: "{{ ppdm_credential.id }}"
+        storage_id: "{{ ppdm_storage_system.id }}"
+        storage_unit_name: ppdm_prod
+
+    - name: Accept client
+      ansible.builtin.include_role:
+        name: dell.daf.ppdm
+        tasks_from: whitelilst
+      vars:
+        whitelist_ip: "{{ groups['testlinuxvm'] | map('extract', hostvars) | map(attribute='inventory_hostname') }}"

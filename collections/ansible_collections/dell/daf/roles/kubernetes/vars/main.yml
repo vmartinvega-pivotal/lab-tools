@@ -1,0 +1,16 @@
+---
+#calico_url: https://raw.githubusercontent.com/projectcalico/calico/v3.25.0/manifests/calico.yaml
+dashboard_url: https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+kubernetes_pod_network: 10.244.0.0/16
+#kubernetes_service_network: 10.96.0.0/12
+flannel_url: https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+local_user: "{{ lookup('ansible.builtin.env', 'ANSIBLE_USER') }}"
+user_folder: "/home/{{ lookup('ansible.builtin.env', 'ANSIBLE_USER') }}"
+role_binding_name: cluster-admin
+kubernetes_user_name: "{{ lookup('ansible.builtin.env', 'ANSIBLE_USER') }}-kubernetes"
+group_name: admins
+dashboard_serviceaccount: homelab-admin
+k8s_apt_key: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+ubuntu_22_k8s_repo: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
+docker_apt_key: https://download.docker.com/linux/ubuntu/gpg
+

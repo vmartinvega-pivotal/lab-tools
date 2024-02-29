@@ -1,0 +1,14 @@
+---
+- name: Set CPU for a VM
+  ansible.builtin.script: >-
+    set_vm_cpu.ps1
+    -vc_server "{{ vc_server }}"
+    -vc_username "{{ vc_username }}"
+    -vc_password "{{ vc_password }}"
+    -vm_name "{{ vm_name }}"
+    -vm_cpus "{{ vm_cpus }}"
+  args:
+    executable: /usr/bin/pwsh
+  environment:
+    NO_COLOR: "True"
+  delegate_to: localhost

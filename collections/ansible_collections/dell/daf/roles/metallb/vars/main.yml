@@ -1,0 +1,9 @@
+---
+metallb_manifest: https://raw.githubusercontent.com/metallb/metallb/v0.13.10/config/manifests/metallb-native.yaml
+metallb_ipaddresspool_name: lab-pool
+metallb_namespace: metallb-system
+metallb_adresses: 
+  - 192.168.1.150-192.168.1.180
+metallb_l2advertisement_name: lab-l2
+max_retries: 20
+wait_delay: 5

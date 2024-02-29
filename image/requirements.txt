@@ -1,0 +1,26 @@
+ansible==8.5.0
+ansible-core==2.15.5
+ansible-lint==6.16.2
+molecule==6.0.2
+PyYAML==6.0.1
+kubernetes==28.1.0
+jsonpatch==1.33
+requests==2.31.0
+jsonschema==4.19.2
+
+# for vmware modules
+pyvmomi==8.0.2.0
+aiohttp==3.8.2
+yarl==1.8.1
+frozenlist==1.3.1
+
+# for json_query
+jmespath==1.0.1
+
+# Needed module to connect to windows vms with winrm
+pywinrm==0.4.3
+
+# Needed for posix.firewalld
+firewall==0.2.0
+
+streamlit

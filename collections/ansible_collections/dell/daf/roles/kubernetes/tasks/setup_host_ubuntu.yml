@@ -1,0 +1,89 @@
+---
+- name: load modules
+  ansible.builtin.shell: >-
+    cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+    overlay
+    br_netfilter
+    EOF
+
+- name: Enable kernel modules
+  ansible.builtin.modprobe:
+    name: "{{ module }}"
+    state: present
+  loop:
+    - iptable_raw
+    - overlay
+    - br_netfilter
+  loop_control:
+    loop_var: module
+
+- name: Create /etc/apt/keyrings
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+  become: true
+
+- name: download key for kubernetes
+  ansible.builtin.shell: >-
+    curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg
+  become: true
+
+- name: add repo for kubernetes
+  ansible.builtin.shell: >-
+    echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list
+  become: true
+
+- name: update repos
+  ansible.builtin.shell: >-
+    apt-get update
+  become: true
+
+- name: Create /etc/containerd
+  ansible.builtin.file:
+    path: /etc/containerd
+    state: directory
+  become: true
+
+- name: default config for containerd
+  ansible.builtin.shell: >-
+    containerd config default > /etc/containerd/config.toml
+  become: true
+
+- name: change default config for containerd
+  ansible.builtin.shell: >-
+    sed -i 's/ SystemdCgroup = false/ SystemdCgroup = true/' /etc/containerd/config.toml  
+  become: true
+
+- name: Enable and start Some Services
+  ansible.builtin.systemd:
+    name: "{{ service }}"
+    state: restarted
+    enabled: yes
+    masked: no
+  loop:
+    - containerd
+  loop_control:
+    loop_var: service
+
+- name: Install Kubernetes
+  ansible.builtin.apt:
+    name: "{{ package }}"
+    state: present
+    allow_downgrade: true
+  loop:
+    - kubelet={{ kubernetes_version }}
+    - kubeadm={{ kubernetes_version }}
+    - kubectl={{ kubernetes_version }}
+  loop_control:
+    loop_var: package
+
+- name: Enable and start Kubernetes service
+  ansible.builtin.systemd:
+    name: "{{ service }}"
+    state: started
+    enabled: yes
+    masked: no
+  loop:
+    - kubelet
+  loop_control:
+    loop_var: service

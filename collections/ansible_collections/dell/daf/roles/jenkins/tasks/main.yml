@@ -1,0 +1,184 @@
+--- 
+- name: Create DAF namespace
+  kubernetes.core.k8s:
+    name: "{{ namespace }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+        
+- name: Get bytes for kubeconfig
+  shell: >-
+    cat /home/daf/.kube/config | base64 --wrap=0
+  register: kubeconfig
+
+- name: Get bytes for kubeconfig
+  set_fact:
+    kubeconfig_file_bytes: "{{ kubeconfig.stdout }}" 
+
+- name: Create Jenkins config
+  set_fact: 
+    jenkins_conf: "{{ lookup('ansible.builtin.template', 'casc-jenkins.yml.j2') | from_yaml }}"
+
+- name: Create Jenkins-conf
+  kubernetes.core.k8s:
+    state: present
+    namespace: "{{ namespace }}"
+    name: jenkins-conf
+    definition:
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: jenkins-conf
+      data:
+        jenkins-conf.yaml: "{{ jenkins_conf | to_json }}"
+
+- name: Create jenkins-secrets
+  kubernetes.core.k8s:
+    state: present
+    namespace: "{{ namespace }}"
+    name: jenkins-secrets
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: jenkins-secrets
+      type: Opaque
+      data:
+        githubsecret: "{{ github_password | b64encode }}"
+        dockersecret: "{{ docker_password | b64encode }}"
+
+- name: Create jenkins-git-config
+  kubernetes.core.k8s:
+    state: present
+    namespace: "{{ namespace }}"
+    name: jenkins-git-config
+    definition:
+      kind: ConfigMap
+      apiVersion: v1
+      data:
+        .gitconfig: "[user]\n\temail = vicente.martin.vega@gmail.com\n\tname = vicente\n[http]\n\tsslVerify
+          = false\n"
+      metadata:
+        name: jenkins-git-config
+
+- name: Create jenkins-localhost-pvc
+  kubernetes.core.k8s:
+    state: present
+    namespace: "{{ namespace }}"
+    name: jenkins-localhost-pvc
+    definition:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: jenkins-localhost-pvc
+      spec:
+        accessModes:
+          - ReadWriteMany
+        resources:
+          requests:
+            storage: 30Gi
+
+- name: Create deployment for jenkins
+  kubernetes.core.k8s:
+    state: absent
+    kind: Deployment
+    namespace: "{{ namespace }}"
+    name: jenkins
+
+- name: Create deployment for jenkins
+  kubernetes.core.k8s:
+    state: present
+    namespace: "{{ namespace }}"
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: jenkins
+        labels:
+          app: jenkins
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: jenkins
+        template:
+          metadata:
+            labels:
+              app: jenkins
+          spec:
+            containers:
+              - name: jenkins
+                image: vmartinvega/jenkins:latest
+                imagePullPolicy: Always
+                env:
+                  - name: JAVA_OPTS
+                    value: -Djenkins.install.runSetupWizard=false
+                  - name: CASC_JENKINS_CONFIG
+                    value: "/var/jenkins_home/jenkins-conf.yaml"
+                  - name: GITHUB_PASSWORD
+                    valueFrom:
+                      secretKeyRef:
+                        name: jenkins-secrets
+                        key: githubsecret
+                  - name: DOCKER_PASSWORD
+                    valueFrom:
+                      secretKeyRef:
+                        name: jenkins-secrets
+                        key: dockersecret
+                ports:
+                  - name: http-port
+                    containerPort: 8080
+                  - name: jnlp-port
+                    containerPort: 50000
+                volumeMounts:
+                  - mountPath: /var/jenkins_home
+                    name: jenkins-home
+                  - mountPath: /var/jenkins_home/.gitconfig
+                    name: jenkins-git-config-volume
+                    subPath: .gitconfig
+                  - mountPath: /var/jenkins_home/jenkins-conf.yaml
+                    name: jenkins-config-volume
+                    subPath: jenkins-conf.yaml
+            volumes:
+              - name: jenkins-home
+                persistentVolumeClaim:
+                  claimName: jenkins-localhost-pvc
+              - configMap:
+                  defaultMode: 420
+                  items:
+                  - key: .gitconfig
+                    path: .gitconfig
+                  name: jenkins-git-config
+                name: jenkins-git-config-volume
+              - configMap:
+                  defaultMode: 420
+                  items:
+                  - key: jenkins-conf.yaml
+                    path: jenkins-conf.yaml
+                  name: jenkins-conf
+                name: jenkins-config-volume
+  
+- name: Create jenkins service
+  kubernetes.core.k8s:
+    state: present
+    namespace: "{{ namespace }}"
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+          name: jenkins
+          annotations:
+              "{{ frontend.service.annotations }}"
+      spec:
+          type: LoadBalancer
+          ports:
+              - port: 80
+                protocol: TCP
+                name: http-port
+                targetPort: 8080
+              - port: 50000
+                protocol: TCP
+                name: jnlp-port
+                targetPort: 50000
+          selector:
+              app: jenkins

@@ -1,0 +1,86 @@
+---
+- name: Playbook to deploy/delete tools
+  hosts: "{{ variable_hosts }}"
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Add helm repository
+      kubernetes.core.helm_repository:
+        name: "{{ repo.repo_name }}"
+        force_update: true
+        repo_state: present
+        repo_url: "{{ repo.repo_url }}"
+      loop:
+        - repo_url: https://charts.bitnami.com/bitnami
+          repo_name: bitnami
+        - repo_url: https://weaviate.github.io/weaviate-helm
+          repo_name: weaviate
+        - repo_url: https://go-skynet.github.io/helm-charts
+          repo_name: go-skynet
+      loop_control:
+        loop_var: repo
+      delegate_to: localhost
+
+    - name: Deploy jenkins
+      ansible.builtin.include_role:
+        name: dell.daf.jenkins
+      when: inventory_hostname == "jenkins"
+
+    - name: Deploy kubeflow
+      block:
+        - name: Bootstrap juju with the kube context just deployed
+          ansible.builtin.shell: >-
+            juju bootstrap {{ backend.context }}
+
+        - name: Add model
+          ansible.builtin.shell: >-
+            juju add-model kubeflow
+
+        - name: Deploy kubeblow
+          ansible.builtin.shell:
+            juju deploy kubeflow --trust  --channel={{ backend.kubeflow_channel }}
+
+        - name: Get external ip to configure dashboard
+          ansible.builtin.shell:
+            kubectl -n kubeflow get svc istio-ingressgateway-workload -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+          register: istio_external_ip
+
+        - name: Configure dashboard service
+          ansible.builtin.shell:
+            juju config dex-auth public-url=http://{{ istio_external_ip.stdout }}
+        
+        - name: Configure dashboard service
+          ansible.builtin.shell:
+            juju config oidc-gatekeeper public-url=http://{{ istio_external_ip.stdout }}
+        
+        - name: Configure user and password
+          ansible.builtin.shell:
+            juju config dex-auth static-username={{ frontend.username }}
+
+        - name: Configure user and password
+          ansible.builtin.shell:
+            juju config dex-auth static-password={{ frontend.password }}
+
+        - name: Debug url
+          ansible.builtin.debug:
+            msg: "kubeflow is accessible in the following url: http://{{ istio_external_ip.stdout }}"
+      when: inventory_hostname == "kubeflow"
+
+    - name: Reconcile tool
+      kubernetes.core.helm:
+        name: "{{ inventory_hostname }}"
+        chart_ref: "{{ chart }}"
+        chart_version: "{{ helm_chart_version }}"
+        release_state: "{{ reconcile_state }}"
+        release_namespace: "{{ namespace }}"
+        create_namespace: true
+        timeout: 20m0s
+        wait: true
+        release_values: >-
+          {{
+            helm_chart_values
+          }}
+      when: 
+        - inventory_hostname != "jenkins"
+        - inventory_hostname != "kubeflow"
+      delegate_to: localhost

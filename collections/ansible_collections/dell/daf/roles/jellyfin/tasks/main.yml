@@ -1,0 +1,24 @@
+- name: Create a mountable directory for sharing
+  ansible.builtin.file:
+    path: "{{ item }}" 
+    state: directory
+    owner: nobody
+    group: nogroup
+    mode: '0755'
+  loop:
+    - /srv/jellyfin/cache
+    - /srv/jellyfin/config
+
+- name: Start container
+  community.docker.docker_container:
+    name: unbound
+    image: jellyfin/jellyfin:latest
+    detach: true
+    state: started
+    restart: true
+    volumes:
+      - /srv/jellyfin/cache:/cache
+      - /srv/jellyfin/config:/config
+      - "{{ share }}:/media"
+    restart_policy: unless-stopped
+    network_mode: host

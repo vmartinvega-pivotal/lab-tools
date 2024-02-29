@@ -1,0 +1,47 @@
+---
+- name: Update apt-get repo and cache
+  ansible.builtin.apt: 
+    update_cache: yes 
+    force_apt_get: yes 
+    cache_valid_time: 3
+    
+- name: Install nfs server
+  ansible.builtin.apt:
+    name: nfs-kernel-server
+    state: present
+
+- name: Create a mountable directories for shares
+  ansible.builtin.file:
+    path: "{{ share.path }}" 
+    state: directory
+    owner: nobody
+    group: nogroup
+    mode: '0777'
+  loop: "{{ shares }}"
+  loop_control:
+    loop_var: share
+
+- name: Add lines to /etc/exports
+  ansible.builtin.lineinfile:
+    path: /etc/exports
+    regexp: "^{{ share.path }} {{ share.allowed_clients }}(rw,sync,no_subtree_check)"
+    line: "{{ share.path }} {{ share.allowed_clients }}(rw,sync,no_subtree_check)"
+  loop: "{{ shares }}"
+  loop_control:
+    loop_var: share
+
+- name: Enable and start services
+  ansible.builtin.systemd:
+    name: "{{ service }}"
+    state: started
+    enabled: yes
+    masked: no
+    daemon_reload: yes
+  loop:
+    - nfs-kernel-server
+  loop_control:
+    loop_var: service
+
+- name: Export all shares
+  ansible.builtin.shell: >-
+    exportfs -arv

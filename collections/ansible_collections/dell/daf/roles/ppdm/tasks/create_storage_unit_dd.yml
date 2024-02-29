@@ -1,0 +1,22 @@
+---
+- name: PPPDM create unit data domain uri
+  ansible.builtin.set_fact:
+    ppdm_storage_unit_dd_uri: "https://{{ ppdm_hostname }}:{{ ppdm_port }}{{ ppdm_resources.storage_unit_dd }}"
+
+- name: Create storage unit in Data Domain
+  ansible.builtin.uri:
+    validate_certs: false
+    url: "{{ ppdm_storage_unit_dd_uri }}"
+    method: POST
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+      Authorization: "Bearer {{ ppdm_auth_token }}"
+    body:
+      credentialId: "{{ credential_id }}"
+      storageArrayId: "{{ storage_id }}"
+      storageUnit:
+        name: "{{ storage_unit_name }}"
+    body_format: json
+    return_content: true
+    status_code: 201

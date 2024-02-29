@@ -1,0 +1,59 @@
+---
+- name: Set fact for the command to execute
+  ansible.builtin.set_fact:
+    user_dd_command: "user add uid {{ dd_create_user__user.uid }} {{ dd_create_user__user.name }} role {{ dd_create_user__user.role }} "
+
+- name: Add max-days-between-change to the command
+  ansible.builtin.set_fact:
+    user_dd_command: "{{ user_dd_command }} max-days-between-change {{ dd_create_user__user.max_days_between_change }} "
+  when: dd_create_user__user.max_days_between_change is defined
+
+- name: Add min-days-between-change to the command
+  ansible.builtin.set_fact:
+    user_dd_command: "{{ user_dd_command }} min-days-between-change {{ dd_create_user__user.min_days_between_change }} "
+  when: dd_create_user__user.min_days_between_change is defined
+
+- name: Add warn-days-before-expire to the command
+  ansible.builtin.set_fact:
+    user_dd_command: "{{ user_dd_command }} warn-days-before-expire {{ dd_create_user__user.warn_days_before_expire }} "
+  when: dd_create_user__user.warn_days_before_expire is defined
+
+- name: Add disable-days-after-expire to the command
+  ansible.builtin.set_fact:
+    user_dd_command: "{{ user_dd_command }} disable-days-after-expire {{ dd_create_user__user.disable_days_after_expire }} "
+  when: dd_create_user__user.disable_days_after_expire is defined
+
+- name: Add disable-date to the command
+  ansible.builtin.set_fact:
+    user_dd_command: "{{ user_dd_command }} disable-date {{ dd_create_user__user.disable_date }} "
+  when: dd_create_user__user.disable_date is defined
+    
+- name: Add force-password-change to the command
+  ansible.builtin.set_fact:
+    user_dd_command: "{{ user_dd_command }} force-password-change {{ (dd_create_user__user.force_password_change) | ternary('yes', 'no') }} "
+  when: dd_create_user__user.force_password_change is defined
+
+- name: Add password to the command
+  ansible.builtin.set_fact:
+    user_dd_command: "{{ user_dd_command }} password \"{{ dd_create_user__user.password }}\""
+    user_dd_command_log: "{{ user_dd_command }} password *******"
+  no_log: true
+
+- name: Debug info
+  ansible.builtin.debug:
+    var: user_dd_command_log
+
+- name: Create User with uid
+  ansible.builtin.script: >-
+    add_user_with_uid.sh
+    {{ dd_hostname }}
+    {{ dd_username }}
+    {{ dd_password | quote }}
+    {{ user_dd_command | quote }}
+  delegate_to: localhost
+  register: createuserwithuid_response
+  no_log: true
+
+- name: Debug info
+  ansible.builtin.debug:
+    var: createuserwithuid_response

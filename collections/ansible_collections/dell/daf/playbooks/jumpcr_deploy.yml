@@ -1,0 +1,82 @@
+---
+- name: Deploy Cyber Recovery Automation VM
+  hosts: jumpcr
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Include role to reconcile vms
+      ansible.builtin.include_role:
+        name: dell.daf.vcenter
+        tasks_from: deploy_vm
+      vars:
+        vm_name: "{{ name }}"
+        vm_template: "{{ template }}"
+        vm_folder: "{{ folder }}"
+        vm_networks: "{{ networks }}"
+        vm_disk: "{{ disk }}"
+        vm_hardware: "{{ hardware }}"
+        vm_dns: "{{ dns }}"
+        vm_domain: "{{ domain }}"
+
+    - name: Wait 2 minutes for target connection to become reachable/usable
+      ansible.builtin.pause:
+        minutes: 2
+
+- name: Setup Cyber Automation service
+  hosts: jumpcr
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Include setup the jumpcr
+      ansible.builtin.include_role:
+        name: dell.daf.accelerator
+        tasks_from: setup_jump_cr
+
+- name: Download tools
+  hosts: jumpcr
+  gather_facts: false
+  connection: local
+  tasks:
+    - name: Setup tools
+      ansible.builtin.include_role:
+        name: dell.daf.accelerator
+        tasks_from: download_tools
+
+- name: Setup tools
+  hosts: jumpcr
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Setup tools
+      ansible.builtin.include_role:
+        name: dell.daf.accelerator
+        tasks_from: setup_tools
+
+- name: Add daf user to docker group
+  hosts: jumpcr
+  gather_facts: false
+  connection: local
+  tasks:
+    - name: Add user daf to docker group
+      ansible.builtin.include_role:
+        name: dell.daf.accelerator
+        tasks_from: add_user_to_group
+      vars:
+        login_user: vicente
+        login_password: changeme
+        user: daf
+
+- name: Create Samba User
+  hosts: jumpcr
+  gather_facts: false
+  connection: local
+  tasks:
+    - name: Creates samba user
+      ansible.builtin.include_role:
+        name: dell.daf.accelerator
+        tasks_from: create_samba_user
+      vars:
+        login_user: vicente
+        login_password: changeme
+        samba_user: daf
+        samba_password: changeme

@@ -1,0 +1,32 @@
+---
+- name: Create user Uri 
+  ansible.builtin.set_fact:
+    cr_users_uri: "https://{{ cr_hostname }}:{{ cr_port }}{{ cr_resources.users }}"
+
+- name: Set fact for cr_create_user__phone
+  ansible.builtin.set_fact:
+    cr_create_user__phone: ""
+  when: cr_create_user__phone is not defined
+  
+- name: CR API call to create user
+  uri:
+    url: "{{ cr_users_uri }}"
+    method: POST
+    headers:
+      X-CR-AUTH-TOKEN: "{{ cr_access_token }}"
+    return_content: yes
+    body_format: json
+    status_code: [201]
+    body:
+      username: "{{ cr_create_user__username }}"
+      firstName: "{{ cr_create_user__first_name }}"
+      lastName: "{{ cr_create_user__last_name }}"
+      email: "{{ cr_create_user__email }}"
+      password: "{{ cr_create_user__password }}"
+      phone: "{{ cr_create_user__phone }}"
+      role: "{{ cr_create_user__role }}"
+    validate_certs: "{{ cr_validate_certs }}"
+  register: cr_create_user_response
+  retries: "{{ cr_uri_retries }}"
+  delay: "{{ cr_uri_delay }}"
+  until: cr_create_user_response.status == 201

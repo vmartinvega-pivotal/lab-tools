@@ -1,0 +1,79 @@
+{
+    "cis": [
+        {
+            "name": "dd_vault",
+            "user_config": {
+                "config": {
+                    "default_gateway": "NOT USED",
+                    "dns": "NOT USED",
+                    "domain": "NOT USED",
+                    "fqdn": "NOT USED",
+                    "networks": [
+                        {
+                            "ip": "NOT USED",
+                            "netmask": "NOT USED",
+                            "network": "management"
+                        },
+                        {
+                            "ip": "192.168.1.142",
+                            "netmask": "NOT USED",
+                            "network": "vault"
+                        }
+                    ],
+                    "officer": "secofficer"
+                },
+                "mtrees": [
+                    {
+                        "name": "/data/col1/DRCyberRecovery"
+                    }
+                ],
+                "users": [
+                    {
+                        "force_password_change": false,
+                        "max_days_between_change": 99999,
+                        "name": "crint",
+                        "role": "admin",
+                        "uid": 550,
+                        "warn_days_before_expire": 7
+                    }
+                ]
+            }
+        },
+        {
+            "name": "cr",
+            "user_config": {
+                "config": {
+                    "default_gateway": "192.168.1.1",
+                    "dns": "8.8.8.8",
+                    "fqdn": "cr.home.local",
+                    "ip": "192.168.1.122",
+                    "netmask": "255.255.255.0",
+                    "network": "VM Network",
+                    "ntp": "es.pool.ntp.org",
+                    "timezone": "Europe/Madrid"
+                },
+                "ova": "dellemc-cyber-recovery-19.15.0.2-33.ova",
+                "users": [
+                    {
+                        "email": "noreply@cyberrecovery",
+                        "first_name": "cradmin",
+                        "last_name": "admin",
+                        "name": "cradmin",
+                        "role": "admin"
+                    }
+                ],
+                "vmware": {
+                    "cluster": "Home-Cluster",
+                    "datacenter": "Home",
+                    "datastore": "datastore1",
+                    "diskmode": "thin",
+                    "folder": "Demo",
+                    "host": "192.168.1.101",
+                    "vm_name": "cr-vault-19.15.0.2-33"
+                }
+            }
+        }
+    ],
+    "description": "Cyber Recovery Project 1",
+    "project": "cr_project"
+}

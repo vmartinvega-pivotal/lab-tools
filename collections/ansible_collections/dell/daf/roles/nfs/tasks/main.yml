@@ -1,0 +1,6 @@
+---
+- name: Include role to setup the server
+  ansible.builtin.include_role:
+    name: dell.daf.nfs
+    tasks_from: _setup_server_ubuntu.yml
+  when: ansible_distribution == "Ubuntu"

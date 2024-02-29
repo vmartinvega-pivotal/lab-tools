@@ -1,0 +1,38 @@
+---
+- name: FS Operation Uri 
+  ansible.builtin.set_fact:
+    fs_operation_uri: "https://{{ dd_hostname }}:{{ dd_port }}{{ dd_resources.dd_systems }}/{{ dd_system_id }}/file-systems"
+
+- name: "FS operation {{ fs_operation__operation }}"
+  ansible.builtin.uri:
+    validate_certs: false
+    url: "{{ fs_operation_uri }}"
+    method: PUT
+    headers:
+      Content-Type: application/json
+      Accept: application/json
+      X-DD-AUTH-TOKEN: "{{ x_dd_auth_token }}"
+    body_format: json
+    timeout: 180
+    body:
+      operation: "{{ fs_operation__operation }}"
+    return_content: true
+    status_code: 200
+
+- name: Wait for file system to be ready
+  ansible.builtin.uri:
+    url: "{{ fs_operation_uri }}"
+    method: GET
+    headers:
+      X-DD-AUTH-TOKEN: "{{ x_dd_auth_token }}"
+    status_code: 200
+    validate_certs: false
+    body_format: json
+  until:
+    - datadomain_fs_status['json']['fs_status'] is defined
+    - datadomain_fs_status['json']['fs_status'] in ["sn_enabled","sn_disabled"]
+  retries: 10
+  delay: 30
+  register: datadomain_fs_status
+  when: fs_operation__operation == "create"
+

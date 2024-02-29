@@ -1,0 +1,25 @@
+name: pytorch212
+channels:
+  - defaults
+dependencies:
+  - python=3.10
+  - pip=22.2.2
+  - pip:
+    - --extra-index-url https://download.pytorch.org/whl/cu118
+    - ipykernel
+    - pandas
+    - matplotlib
+    - scikit-learn
+    - torch
+    - torchvision
+    - torchaudio
+    - yt-dlp
+    - ffmpeg-python
+    - openai-whisper
+    - diffusers
+    - transformers
+    - accelerate
+    - scipy
+    - safetensors
+    - chardet
+    

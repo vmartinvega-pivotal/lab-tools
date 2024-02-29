@@ -1,0 +1,26 @@
+---
+- name: Patch DR backup Uri 
+  ansible.builtin.set_fact:
+    cr_patch_dr_backup_uri: "https://{{ cr_hostname }}:{{ cr_port }}{{ cr_resources.drbackup }}"
+
+- name: Patch DR backup
+  uri:
+    url: "{{ cr_patch_dr_backup_uri }}"
+    method: PATCH
+    return_content: yes
+    headers:
+      X-CR-AUTH-TOKEN: "{{ cr_access_token }}"
+    status_code: [200]
+    validate_certs: "{{ cr_validate_certs }}"
+    body_format: json
+    body:
+      enabled: true
+      #nextRun: "2024-06-13T20:00:00-04:00"
+      nextRun: "{{ '%Y-%m-%dT%H:%M:%S' | strftime( ( ansible_date_time.epoch | int ) + 86400 ) }}{{ ansible_date_time.tz_offset[:3] }}:{{ ansible_date_time.tz_offset[3:] }}"
+      frequency:
+        hours: 0
+        days: 1
+  register: cr_patchdrbackup_response
+  retries: "{{ cr_uri_retries }}"
+  delay: "{{ cr_uri_delay }}"
+  until: cr_patchdrbackup_response.status == 200

@@ -1,0 +1,41 @@
+---
+- name: Login Uri 
+  ansible.builtin.set_fact:
+    cr_login_uri: "https://{{ cr_hostname }}:{{ cr_port }}{{ cr_resources.login }}"
+
+- name: Debug info
+  ansible.builtin.debug:
+    var: cr_login_uri
+
+- name: Set username to use
+  ansible.builtin.set_fact:
+    login_cr_input_username: "{{ cr_username }}"
+  when: login_cr_input_username is not defined
+
+- name: Set password to use
+  ansible.builtin.set_fact:
+    login_cr_input_password: "{{ cr_password }}"
+  when: login_cr_input_password is not defined
+  no_log: true
+
+- name: CR API call to login
+  uri:
+    url: "{{ cr_login_uri }}"
+    method: POST
+    return_content: yes
+    body_format: json
+    status_code: [200]
+    body:
+      username: "{{ login_cr_input_username }}"
+      password: "{{ login_cr_input_password }}"
+      securitycode: "{{ cr_security_code }}"
+    validate_certs: "{{ cr_validate_certs }}"
+  register: cr_login_response
+  retries: "{{ cr_uri_retries }}"
+  delay: "{{ cr_uri_delay }}"
+  until: cr_login_response.status == 200
+
+- name: Set outputs
+  ansible.builtin.set_fact:
+    cr_access_token: "{{ cr_login_response.json.accessToken }}"
+    cr_refresh_token: "{{ cr_login_response.json.refreshToken }}"

@@ -1,0 +1,71 @@
+{
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "redhat.ansible",
+                "ms-kubernetes-tools.vscode-kubernetes-tools",
+                "timonwong.shellcheck",
+                "ms-azuretools.vscode-docker",
+                "hilleer.yaml-plus-json",
+                "gruntfuggly.todo-tree",
+                "donjayamanne.python-environment-manager",
+                "tomoki1207.pdf",
+                "ms-toolsai.jupyter"
+            ],
+            "settings": {
+                "ansible.python.interpreterPath": "/opt/conda/bin/python"
+            }
+        }
+    },
+    "mounts": [
+        {
+            "source": "/home/vicente/conda",
+            "target": "/home/daf/.conda",
+            "type": "bind"
+        },
+        {
+            "source": "/home/vicente/Downloads",
+            "target": "/home/daf/Downloads",
+            "type": "bind"
+        },
+        {
+            "source": "/home/vicente/.kube",
+            "target": "/home/daf/.kube",
+            "type": "bind"
+        },
+        {
+            "source": "/var/run/docker.sock",
+            "target": "/var/run/docker.sock",
+            "type": "bind"
+        },
+        {
+            "source": "/home/vicente/.ssh",
+            "target": "/home/daf/.ssh",
+            "type": "bind"
+        },
+        {
+            "source": "/tmp",
+            "target": "/tmp",
+            "type": "bind"
+        }
+    ],
+    "build": {
+        "dockerfile": "./image/Dockerfile",
+        "context": "./image",
+        "target": "development",
+        "args": {
+            "HOST_USER_UID": "2000",
+            "HOST_USER_GID": "2000",
+            "HOST_DOCKER_GID": "998"
+        }
+    },
+    "forwardPorts": [8888],
+    "postStartCommand": "nohup bash -c 'jupyter notebook --ip=0.0.0.0 --port=8888 --allow-root &'",
+    "containerEnv": {
+        "ANSIBLE_COLLECTIONS_PATHS": "/workspaces/lab-tools/collections"
+    },
+    "remoteEnv": {
+        "PATH": "/workspaces/lab-tools/scripts:/workspaces/lab-tools/utils:/workspaces/lab-tools/bin:${containerEnv:PATH}"
+    },
+    "remoteUser": "daf"
+}

@@ -1,0 +1,11 @@
+---
+ppdm_port:  8443
+ppdm_resources:
+  login: /api/v2/login
+  credentials: /api/v2/credentials
+  add_datadomain: /api/v2/inventory-sources
+  certificates: /api/v2/certificates
+  asset_settings: /api/v2/common-settings/ASSET_SETTING
+  whitelist: /api/v2/whitelist
+  storage_unit_dd: /api/v2/datadomain-storage-units
+  storage_systems: /api/v2/storage-systems
