@@ -19,6 +19,8 @@
       ansible.builtin.include_role:
         name: dell.daf.accelerator
         tasks_from: export_to_ova
+      vars:
+        version: "{{ jumpcr_version }}"
 
     - name: Delete VM
       community.vmware.vmware_guest:

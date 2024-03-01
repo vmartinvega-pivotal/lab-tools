@@ -31,6 +31,8 @@
       ansible.builtin.include_role:
         name: dell.daf.accelerator
         tasks_from: setup_jump_cr
+      vars:
+        version: "{{ jumpcr_version }}"
 
 - name: Download tools
   hosts: jumpcr

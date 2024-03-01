@@ -1,0 +1,6 @@
+---
+- name: Pull Docker image
+  docker_image:
+    name: "vmartinvega/automation:{{ version }}"
+    source: pull
+    state: present

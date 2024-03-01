@@ -23,6 +23,7 @@
     - git
     - unzip
     - docker.io
+    - libxml2-utils
   loop_control:
     loop_var: package
 
@@ -94,6 +95,15 @@
     mode: '0755'
     owner: daf
     group: daf
+
+- name: Modify cr_automation
+  ansible.builtin.lineinfile:
+    path: "/usr/local/bin/cr_automation"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    backrefs: True
+  loop:
+    - { regexp: '^(.*)vmartinvega/automation:(.*)$', line: '\1vmartinvega/automation:{{ version }}' }
 
 - name: Copy rc.local
   ansible.builtin.copy:

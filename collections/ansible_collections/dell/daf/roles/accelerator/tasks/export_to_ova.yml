@@ -23,10 +23,13 @@
     state: absent
   loop:
     - "{{ name }}-disk1.vmdk"
+    - "{{ name }}.vmdk"
     - "{{ name }}-file1.nvram"
+    - "{{ name }}.nvram"
     - "{{ name }}.mf"
     - "{{ name }}.ovf"
     - "{{ name }}.ova"
+    - "{{ name }}-{{ version }}.ova"
   loop_control:
     loop_var: file
   delegate_to: localhost
@@ -36,27 +39,49 @@
     argv: "{{ command_to_execute }}"
   delegate_to: localhost
 
+- name: Modify OVF file
+  ansible.builtin.lineinfile:
+    path: "{{ name }}.ovf"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    backrefs: True
+  delegate_to: localhost
+  loop:
+    - { regexp: '^(.*){{ name }}-disk1.vmdk(.*)$', line: '\1{{ name }}.vmdk\2' }
+    - { regexp: '^(.*){{ name }}-file1.nvram(.*)$', line: '' }
+    - { regexp: '^(.*)ovf:/file/file2(.*)$', line: '' }
+
+- name: Rename file
+  ansible.builtin.file:
+    src: "{{ name }}-disk1.vmdk"
+    dest: "{{ name }}.vmdk"
+    state: link
+  delegate_to: localhost
+
+- name: Remove files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  delegate_to: localhost
+  loop:
+    - "{{ name }}-file1.nvram"
+    - "{{ name }}.mf"
+
 - name: Modify VirtualHardwareSection line in jumpcr.ovf
   ansible.builtin.lineinfile:
-    path: jumpcr.ovf
+    path: "{{ name }}.ovf"
     regexp: '^    <VirtualHardwareSection>'
     line: '    <VirtualHardwareSection ovf:transport="com.vmware.guestInfo">'
   delegate_to: localhost
 
-- name: Remove file jumpcr.mf
-  ansible.builtin.file:
-    path: jumpcr.mf
-    state: absent
-  delegate_to: localhost
-
 - name: Add ProductSection to jumpcr.ovf
   ansible.builtin.lineinfile:
-    path: jumpcr.ovf
+    path: "{{ name }}.ovf"
     regexp: '^  </VirtualSystem>'
     line: >-
         <ProductSection>
           <Info>Information about the installed software</Info>
-          <Product>Cyber Recovery Automation - 2.0.0</Product>
+          <Product>Cyber Recovery Automation - {{ version }}</Product>
           <Vendor>Vicente Martin</Vendor>
           <ProductUrl>https://github.com/DellAutomation/cyber-recovery-accelerator</ProductUrl>
           <Category>Networking</Category>
@@ -67,8 +92,7 @@
             <Label>IP Address</Label>
           </Property>
           <Property ovf:key="guestinfo.netmask" ovf:type="string" ovf:userConfigurable="true">
-            <Label>Netmask</Label>
-            <Description>(CIDR Format)</Description>
+            <Label>Netmask(CIDR Format)</Label>
           </Property>
           <Property ovf:key="guestinfo.gateway" ovf:type="string" ovf:userConfigurable="true">
             <Label>Gateway</Label>
@@ -99,9 +123,15 @@
     state: absent
   loop:
     - "{{ name }}-disk1.vmdk"
-    - "{{ name }}-file1.nvram"
-    - "{{ name }}.mf"
+    - "{{ name }}.vmdk"
     - "{{ name }}.ovf"
   loop_control:
     loop_var: file
+  delegate_to: localhost
+
+- name: Rename file ova
+  ansible.builtin.file:
+    src: "{{ name }}.ova"
+    dest: "{{ name }}-{{ version }}.ova"
+    state: link
   delegate_to: localhost

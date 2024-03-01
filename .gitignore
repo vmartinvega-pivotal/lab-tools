@@ -11,8 +11,5 @@ ai/summary_images/openai_password.txt
 ai/rag-stack
 nohup.out
 **/*.csv
-jumpcr.ovf*
-jumpcr.mf*
-jumpcr-file1*
-jumpcr-disk1*
-jumpcr.ova*
+**/jumpcr.*
+**/jumpcr-*.*
