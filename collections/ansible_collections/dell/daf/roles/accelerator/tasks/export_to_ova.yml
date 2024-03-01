@@ -133,5 +133,13 @@
   ansible.builtin.file:
     src: "{{ name }}.ova"
     dest: "{{ name }}-{{ version }}.ova"
-    state: link
+    state: hard
   delegate_to: localhost
+
+- name: Remove files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  delegate_to: localhost
+  loop:
+    - "{{ name }}.ova"
