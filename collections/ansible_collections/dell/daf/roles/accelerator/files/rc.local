@@ -10,6 +10,7 @@ else
     NETMASK_PROPERTY=$(vmtoolsd --cmd "info-get guestinfo.ovfEnv" | xmllint --format -| grep "guestinfo.netmask")
     GATEWAY_PROPERTY=$(vmtoolsd --cmd "info-get guestinfo.ovfEnv" | xmllint --format -| grep "guestinfo.gateway")
     DNS_SERVER_PROPERTY=$(vmtoolsd --cmd "info-get guestinfo.ovfEnv" | xmllint --format -| grep "guestinfo.dns")
+    DNS_SEARCH_PROPERTY=$(vmtoolsd --cmd "info-get guestinfo.ovfEnv" | xmllint --format -| grep "guestinfo.search")
 
     ##################################
     ### No User Input, assume DHCP ###
@@ -22,6 +23,7 @@ else
         NETMASK=$(echo "${NETMASK_PROPERTY}" | awk -F 'oe:value="' '{print $2}' | awk -F '"' '{print $1}')
         GATEWAY=$(echo "${GATEWAY_PROPERTY}" | awk -F 'oe:value="' '{print $2}' | awk -F '"' '{print $1}')
         DNS_SERVER=$(echo "${DNS_SERVER_PROPERTY}" | awk -F 'oe:value="' '{print $2}' | awk -F '"' '{print $1}')
+        DNS_SEARCH=$(echo "${DNS_SEARCH_PROPERTY}" | awk -F 'oe:value="' '{print $2}' | awk -F '"' '{print $1}')
 
         # Remove character / if it was introduced in netmask
         if [ "${NETMASK:0:1}" = "/" ]; then
@@ -45,12 +47,12 @@ network:
       gateway4: $GATEWAY
       nameservers:
         search:
-          - home.local
+          - $DNS_SEARCH
         addresses:
           - $DNS_SERVER
 EOF
             netplan apply
-            hostnamectl set-hostname $HOSTNAME
+            hostnamectl set-hostname "$HOSTNAME"
             systemctl restart systemd-networkd
     fi
     touch /root/ran_customization

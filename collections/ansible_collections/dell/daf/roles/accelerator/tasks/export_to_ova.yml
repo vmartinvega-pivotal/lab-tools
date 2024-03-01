@@ -92,13 +92,16 @@
             <Label>IP Address</Label>
           </Property>
           <Property ovf:key="guestinfo.netmask" ovf:type="string" ovf:userConfigurable="true">
-            <Label>Netmask(CIDR Format)</Label>
+            <Label>Netmas[CIDR Format]</Label>
           </Property>
           <Property ovf:key="guestinfo.gateway" ovf:type="string" ovf:userConfigurable="true">
             <Label>Gateway</Label>
           </Property>
           <Property ovf:key="guestinfo.dns" ovf:type="string" ovf:userConfigurable="true">
             <Label>DNS Server</Label>
+          </Property>
+          <Property ovf:key="guestinfo.search" ovf:type="string" ovf:userConfigurable="true">
+            <Label>FQDN [e.g. hostname.domain]</Label>
           </Property>
         </ProductSection>
         </VirtualSystem>

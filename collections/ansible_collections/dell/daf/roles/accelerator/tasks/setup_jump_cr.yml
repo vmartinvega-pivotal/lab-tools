@@ -124,3 +124,13 @@
     mode: '0644'
     owner: daf
     group: daf
+
+# Remove unnecessary entries in /etc/hosts
+- name: Modify /etc/hosts
+  ansible.builtin.lineinfile:
+    path: "/etc/hosts"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    backrefs: True
+  loop:
+    - { regexp: '^(.*){{ name }}(.*)$', line: '' }
