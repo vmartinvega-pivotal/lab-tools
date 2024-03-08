@@ -1,0 +1,37 @@
+---
+- name: Compile Image
+  hosts: jumpcr
+  gather_facts: false
+  become: false
+  tasks:
+    - name: Set facts
+      ansible.builtin.set_fact:
+        user_set_up: daf
+        automation_repo: cyber-recovery-accelerator
+
+    - name: Clone repo
+      ansible.builtin.git:
+        repo: "{{ repo.url }}"
+        dest: "/home/{{ user_set_up }}/{{ repo.path }}"
+      loop:
+        - url: git@github.com:vmartinvega-pivotal/cyber-recovery-accelerator.git
+          path: "{{ automation_repo }}"
+      loop_control:
+        loop_var: repo
+
+    - name: Build image
+      ansible.builtin.shell: >-
+        cd /home/{{ user_set_up }}/{{ automation_repo }} && ./build/utils/docker_compile.sh 
+
+    - name: Remove directory
+      ansible.builtin.file:
+        path: "/home/{{ user_set_up }}/{{ automation_repo }}"
+        state: absent
+        recurse: yes
+
+    # - name: Pull image
+    #   ansible.builtin.include_role:
+    #     name: dell.daf.accelerator
+    #     tasks_from: pull_image
+    #   vars:
+    #     version: "{{ jumpcr_version }}"

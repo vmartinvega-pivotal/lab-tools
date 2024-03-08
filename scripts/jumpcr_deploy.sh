@@ -18,7 +18,7 @@ ansible-playbook --vault-password-file "${SCRIPT_DIR}/../vault_pass.txt" --extra
 ansible-playbook --vault-password-file "${SCRIPT_DIR}/../vault_pass.txt" --extra-vars "ansible_sudo_pass=${sudo_pass}" \
     -i "${inventory_full_path_lab}" \
     --extra-vars "jumpcr_version=$1" \
-    dell.daf.jumpcr_pull.yml
+    dell.daf.jumpcr_compile.yml
 
 ansible-playbook --vault-password-file "${SCRIPT_DIR}/../vault_pass.txt" --extra-vars "ansible_sudo_pass=${sudo_pass}" \
     -i "${inventory_full_path_lab}" \

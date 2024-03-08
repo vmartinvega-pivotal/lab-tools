@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SAMBA_FOLDER=/srv/samba/share
-IMAGE=vmartinvega/automation:latest
+IMAGE=cr-automation:latest
 
 function usage {
     echo "usage: $0 <project file> <command>"
