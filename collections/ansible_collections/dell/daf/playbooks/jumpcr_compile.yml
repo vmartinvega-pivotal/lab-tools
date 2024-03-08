@@ -27,11 +27,3 @@
       ansible.builtin.file:
         path: "/home/{{ user_set_up }}/{{ automation_repo }}"
         state: absent
-        recurse: yes
-
-    # - name: Pull image
-    #   ansible.builtin.include_role:
-    #     name: dell.daf.accelerator
-    #     tasks_from: pull_image
-    #   vars:
-    #     version: "{{ jumpcr_version }}"
