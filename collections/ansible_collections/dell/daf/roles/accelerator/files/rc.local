@@ -44,7 +44,11 @@ network:
       dhcp6: no
       addresses:
         - $IP_ADDRESS/$NETMASK
-      gateway4: $GATEWAY
+      routes:
+        - to: 0.0.0.0/0
+          via: $GATEWAY
+        - to: $IP_ADDRESS/$NETMASK
+          via: $GATEWAY
       nameservers:
         search:
           - $DNS_SEARCH
@@ -52,8 +56,20 @@ network:
           - $DNS_SERVER
 EOF
             netplan apply
+            ufw enable
+            ufw allow in ssh
+            ufw allow out ssh
+            ufw allow 137/tcp # NetBIOS Name Service
+            ufw allow 138/tcp # NetBIOS Datagram Service
+            ufw allow 139/tcp # NetBIOS Session Service
+            ufw allow 445/tcp # Microsoft-DS
+            ufw allow 389/tcp # LDAP
+            ufw allow 901/tcp # SWAT
+            ufw allow http
+            ufw allow https
             hostnamectl set-hostname "$HOSTNAME"
             systemctl restart systemd-networkd
+            service ufw stop
     fi
     touch /root/ran_customization
 fi

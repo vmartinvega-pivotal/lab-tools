@@ -50,6 +50,7 @@
     - { regexp: '^(.*){{ name }}-disk1.vmdk(.*)$', line: '\1{{ name }}.vmdk\2' }
     - { regexp: '^(.*){{ name }}-file1.nvram(.*)$', line: '' }
     - { regexp: '^(.*)ovf:/file/file2(.*)$', line: '' }
+    - { regexp: '^(.*)vmx-19(.*)$', line: '\1vmx-17\2' } # (ESXi 7.0 and later) https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.vsphere.vm_admin.doc/GUID-789C3913-1053-4850-A0F0-E29C3D32B6DA.html
 
 - name: Rename file
   ansible.builtin.file:

@@ -19,6 +19,10 @@
       loop_control:
         loop_var: repo
 
+    - name: TODO. Investigare why this wait for docker to become ready to connect is needed, otherwise the build fails with permission denied
+      ansible.builtin.pause:
+        minutes: 5
+
     - name: Build image
       ansible.builtin.shell: >-
         cd /home/{{ user_set_up }}/{{ automation_repo }} && ./build/utils/docker_compile.sh 

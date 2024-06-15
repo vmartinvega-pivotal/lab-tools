@@ -1,15 +1,15 @@
 ---
-- name: Stop and disable services
-  ansible.builtin.systemd:
-    name: "{{ service }}"
-    state: stopped
-    enabled: no
-    masked: no
-    daemon_reload: yes
-  loop:
-    - ufw 
-  loop_control:
-    loop_var: service
+# - name: Stop and disable services
+#   ansible.builtin.systemd:
+#     name: "{{ service }}"
+#     state: stopped
+#     enabled: no
+#     masked: no
+#     daemon_reload: yes
+#   loop:
+#     - ufw 
+#   loop_control:
+#     loop_var: service
 
 - name: Install some packages
   ansible.builtin.apt:
@@ -125,13 +125,16 @@
     dest: "/etc/systemd/system"
     mode: '0644'
 
-- name: Copy cr_project.json
+- name: Copy files
   ansible.builtin.copy:
-    src: cr_project.json
+    src: "{{ item }}"
     dest: "{{ share }}"
     mode: '0644'
     owner: daf
     group: daf
+  loop:
+    - cr_project.json
+    - lab.json
 
 # Remove unnecessary entries in /etc/hosts
 - name: Modify /etc/hosts
