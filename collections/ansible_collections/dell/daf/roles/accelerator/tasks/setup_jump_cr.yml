@@ -133,8 +133,8 @@
     owner: daf
     group: daf
   loop:
-    - cr_project.json
-    - lab.json
+    - lab.yml
+    - inventory.yml
 
 # Remove unnecessary entries in /etc/hosts
 - name: Modify /etc/hosts

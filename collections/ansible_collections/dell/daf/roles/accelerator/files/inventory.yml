@@ -1,0 +1,74 @@
+---
+all:
+  children:
+    automation:
+      hosts:
+        crs:
+          dd_vault:
+            config:
+              networks:
+              - ip: 192.168.1.142
+                network: vault
+            mtrees:
+            - name: /data/col1/DRCyberRecovery
+            users:
+            - force_password_change: false
+              max_days_between_change: 99999
+              name: crint
+              role: admin
+              uid: 550
+              warn_days_before_expire: 7
+              password: Pa%w0rd123
+            users_to_configure:
+              sysadmin:
+                user: sysadmin
+                password: Pa%w0rd123
+              secofficer:
+                user: secofficer                
+                password: officer_Pa=w0rd123
+          vmware:
+            # cluster: Home-Cluster
+            # datacenter: Home
+            # folder: Demo
+            datastore: datastore1
+            diskmode: thin
+            host: 192.168.1.160
+            vm_name: cr-vault-19.15.0.3-3
+            users_to_configure:
+              admin:
+                user: root
+                password: VMware1!
+          cr:
+            config:
+              default_gateway: 192.168.1.1
+              dns: 8.8.8.8
+              fqdn: cr.home.local
+              ip: 192.168.1.122
+              netmask: 255.255.255.0
+              network: VM Network
+              ntp: es.pool.ntp.org
+              timezone: Europe/Madrid
+            ova: dellemc-cyber-recovery-19.15.0.3-3.ova
+            users:
+            - email: noreply@cyberrecovery
+              first_name: cradmin
+              last_name: admin
+              name: cradmin
+              role: admin
+              # password: Passw0rd#cradmin
+            # users_to_configure:
+            #   root:
+            #     user: root
+            #     password: Passw0rd=root
+            #   admin:
+            #     user: admin
+            #     password: Passw0rd=admin
+            #   mongodb: 
+            #     user: mongodb
+            #     password: Passw0rd=mongodb
+            #   crso:
+            #     user: crso
+            #     password: Passw0rd=crso
+            #   lockbox: 
+            #     user: lockbox
+            #     password: Passw0rd=lockbox

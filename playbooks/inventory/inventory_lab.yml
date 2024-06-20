@@ -66,6 +66,7 @@ all:
         avamarvault:
         ppdmprod:
         testlinuxvm:
+        jumpcrtest:
       vars:
         # Ansible conf (TODO: add to Dockerfile)
         ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
@@ -185,8 +186,10 @@ all:
                 ip: 192.168.1.174
               - name: 'zorin'
                 ip: 192.168.1.175
-              - name: 'jumpautomation'
+              - name: 'jumpcr'
                 ip: 192.168.1.176
+              - name: 'jumpcrtest'
+                ip: 192.168.1.177
     testlinuxvm:
       hosts:
         192.168.1.148:
@@ -312,6 +315,31 @@ all:
                 value: avamarvault.home.local
               - key: vami.NTP.Avamar_Virtual_Edition
                 value: es.pool.ntp.org
+    jumpcrtest:
+      hosts:
+        192.168.1.177:
+          name: jumpcrtest
+          folder: "Lab VMs"
+          domain: home.local
+          ova:
+            name: jumpcr-2.0.2.ova
+            diskmode: thin
+            network:
+              - origin: "VM Network"
+                target: "VM Network"
+            properties:
+              - key: guestinfo.hostname
+                value: jumpcrtest.home.local
+              - key: guestinfo.ipaddress
+                value: 192.168.1.177
+              - key: guestinfo.netmask
+                value: 24
+              - key: guestinfo.gateway
+                value: 192.168.1.1
+              - key: guestinfo.dns
+                value: 192.168.1.130
+              - key: guestinfo.search
+                value: home.local
     esxi73:
       hosts:
         192.168.1.160:

@@ -34,8 +34,8 @@ function InstallPortable{
     }
 }
 
-InstallMsi -file_path "$root_folder_tools\ChromeStandaloneSetup64.exe" -arguments "/install /silent"
-InstallMsi -file_path "$root_folder_tools\CSViewer.exe" -arguments "/install /silent"
+#InstallMsi -file_path "$root_folder_tools\ChromeStandaloneSetup64.exe" -arguments "/install /silent"
+#InstallMsi -file_path "$root_folder_tools\CSViewer.exe" -arguments "/install /silent"
 
 InstallPortable -file_path "$root_folder_tools\csvfileview.zip" -destination "$cr_apps_destination_path"
 InstallPortable -file_path "$root_folder_tools\Firefox.zip" -destination "$cr_apps_destination_path"

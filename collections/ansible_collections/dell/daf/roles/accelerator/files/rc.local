@@ -70,6 +70,7 @@ EOF
             hostnamectl set-hostname "$HOSTNAME"
             systemctl restart systemd-networkd
             service ufw stop
+            ufw disable
     fi
     touch /root/ran_customization
 fi

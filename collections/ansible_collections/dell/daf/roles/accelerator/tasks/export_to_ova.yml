@@ -102,7 +102,7 @@
             <Label>DNS Server</Label>
           </Property>
           <Property ovf:key="guestinfo.search" ovf:type="string" ovf:userConfigurable="true">
-            <Label>FQDN [e.g. hostname.domain]</Label>
+            <Label>Search Domain</Label>
           </Property>
         </ProductSection>
         </VirtualSystem>

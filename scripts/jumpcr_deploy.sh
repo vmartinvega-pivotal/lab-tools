@@ -24,3 +24,8 @@ ansible-playbook --vault-password-file "${SCRIPT_DIR}/../vault_pass.txt" --extra
     -i "${inventory_full_path_lab}" \
     --extra-vars "jumpcr_version=$1" \
     dell.daf.jumpcr_export.yml
+
+ansible-playbook --vault-password-file "${SCRIPT_DIR}/../vault_pass.txt" --extra-vars "ansible_sudo_pass=${sudo_pass}" \
+    -i "${inventory_full_path_lab}" \
+    --extra-vars "variable_ova_to_test=jumpcr-$1.ova" \
+    dell.daf.jumpcr_test.yml
