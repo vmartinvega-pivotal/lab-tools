@@ -34,7 +34,7 @@ all:
             users_to_configure:
               admin:
                 user: root
-                # password:
+                password: Dellsvcs1!
           cr:
             config:
               default_gateway: 192.168.133.1
@@ -52,7 +52,7 @@ all:
               last_name: admin
               name: cradmin
               role: admin
-              # password: Passw0rd#cradmin
+              # password: Passw0rd=cradmin
             # users_to_configure:
             #   root:
             #     user: root

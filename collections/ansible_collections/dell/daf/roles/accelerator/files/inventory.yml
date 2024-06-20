@@ -33,7 +33,7 @@ all:
             datastore: datastore1
             diskmode: thin
             host: 192.168.1.160
-            vm_name: cr-vault-19.15.0.3-3
+            vm_name: cyber-recovery-vault
             users_to_configure:
               admin:
                 user: root
@@ -41,21 +41,21 @@ all:
           cr:
             config:
               default_gateway: 192.168.1.1
-              dns: 8.8.8.8
+              dns: 192.168.1.130
               fqdn: cr.home.local
               ip: 192.168.1.122
               netmask: 255.255.255.0
               network: VM Network
               ntp: es.pool.ntp.org
               timezone: Europe/Madrid
-            ova: dellemc-cyber-recovery-19.15.0.3-3.ova
+            ova: dellemc-cyber-recovery-19.15.0.2-33.ova
             users:
             - email: noreply@cyberrecovery
               first_name: cradmin
               last_name: admin
               name: cradmin
               role: admin
-              # password: Passw0rd#cradmin
+              # password: Passw0rd=cradmin
             # users_to_configure:
             #   root:
             #     user: root
