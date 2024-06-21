@@ -21,6 +21,8 @@ all:
             # 
             # If empty the commented user will be created
             #
+            # The first user will be used to add the storage to Cyber Recovery
+            #
             # users:
             # - force_password_change: false
             #   max_days_between_change: 99999
