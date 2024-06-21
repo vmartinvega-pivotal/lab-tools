@@ -6,19 +6,17 @@ all:
         crs:
           dd_vault:
             config:
-              networks:
-              - ip: 192.168.1.142
-                network: vault
-            mtrees:
-            - name: /data/col1/DRCyberRecovery
-            users:
-            - force_password_change: false
-              max_days_between_change: 99999
-              name: crint
-              role: admin
-              uid: 550
-              warn_days_before_expire: 7
-              password: Pa%w0rd123
+              ip: 192.168.1.142
+            # mtrees:
+            # - name: /data/col1/DRCyberRecovery
+            # users:
+            # - force_password_change: false
+            #   max_days_between_change: 99999
+            #   name: crint
+            #   role: admin
+            #   uid: 550
+            #   warn_days_before_expire: 7
+            #   password: Passw0rd=crint
             users_to_configure:
               sysadmin:
                 user: sysadmin
@@ -33,7 +31,7 @@ all:
             datastore: datastore1
             diskmode: thin
             host: 192.168.1.160
-            vm_name: cyber-recovery-vault
+            vm_name: cr-vault
             users_to_configure:
               admin:
                 user: root
@@ -49,13 +47,13 @@ all:
               ntp: es.pool.ntp.org
               timezone: Europe/Madrid
             ova: dellemc-cyber-recovery-19.15.0.2-33.ova
-            users:
-            - email: noreply@cyberrecovery
-              first_name: cradmin
-              last_name: admin
-              name: cradmin
-              role: admin
-              # password: Passw0rd=cradmin
+            # users:
+            # - email: noreply@cyberrecovery
+            #   first_name: cradmin
+            #   last_name: admin
+            #   name: cradmin
+            #   role: admin
+            #   password: Passw0rd=cradmin
             # users_to_configure:
             #   root:
             #     user: root

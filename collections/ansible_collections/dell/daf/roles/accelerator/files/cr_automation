@@ -15,6 +15,7 @@ function usage {
     echo "    - dd_setup \"Creates users, mtrees and enables ddboost in Data Domain for Cyber Recovery integration\""
     echo "    - dd_officer \"Checks data domain officer user is created or adds a new one\""
     echo "    - checks \"Does a list of checks in the environment needed for the automation\""
+    echo "    - check_deployment \"Check the full automation\""
     echo "    - full_automation \"Does a full automation configuring Cyber Recovery and Data Domain in the right order\""
 }
 

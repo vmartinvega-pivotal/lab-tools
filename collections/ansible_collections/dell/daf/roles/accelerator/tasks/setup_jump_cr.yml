@@ -135,6 +135,7 @@
   loop:
     - lab.yml
     - inventory.yml
+    - inventory_template.yml
 
 # Remove unnecessary entries in /etc/hosts
 - name: Modify /etc/hosts
