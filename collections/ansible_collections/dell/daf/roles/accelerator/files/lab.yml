@@ -25,7 +25,7 @@ all:
                 user: secofficer                
                 # password: Passw0rd=officer
           vmware:
-            datastore: datastore1
+            datastore: datastore2
             diskmode: thin
             host: 192.168.133.11
             vm_name: cyber-recovery-vault
@@ -42,7 +42,7 @@ all:
               netmask: 255.255.255.0
               network: VM Network
               ntp: 192.168.133.254
-              timezone: Europe/Madrid
+              timezone: America/Chicago
             ova: dellemc-cyber-recovery-19.16.0.2-10.ova
             # users:
             # - email: noreply@cyberrecovery
