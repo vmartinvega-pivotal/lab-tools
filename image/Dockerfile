@@ -5,7 +5,8 @@ ARG HOST_USER_UID=2000
 ARG HOST_USER_GID=2000
 
 RUN groupadd --gid "${HOST_USER_GID}" daf && \
-    useradd --create-home --shell /bin/bash --uid "${HOST_USER_UID}" --gid "${HOST_USER_GID}" daf
+    useradd --create-home --shell /bin/bash --uid "${HOST_USER_UID}" --gid "${HOST_USER_GID}" daf && echo "daf:changeme" | chpasswd && \
+    usermod -aG sudo daf
 
 RUN curl -L "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" -o /usr/local/bin/kubectl && \
     chmod 755 /usr/local/bin/kubectl
@@ -26,6 +27,7 @@ RUN apt-get update && \
     apt-get install -y \
         sshpass \
         expect \
+        cifs-utils \
         wget && \
     apt-get clean
 

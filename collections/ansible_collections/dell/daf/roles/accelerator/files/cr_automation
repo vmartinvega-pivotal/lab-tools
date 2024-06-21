@@ -31,7 +31,7 @@ usecase="$2"
 set -o nounset
 
 case "${usecase}" in
-    cr_deploy|cr_setup|cr_users|cr_storage|dd_setup|dd_officer|checks|full_automation)
+    cr_deploy|cr_setup|cr_users|cr_storage|dd_setup|dd_officer|checks|full_automation|check_deployment)
         docker run -i -t -v "${SAMBA_FOLDER}":/cr --rm "${IMAGE}" "${usecase}".sh /cr /cr/"${PROJECT_FILE}"
         ;;
     *)
