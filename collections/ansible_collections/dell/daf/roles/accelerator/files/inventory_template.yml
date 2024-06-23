@@ -23,6 +23,8 @@ all:
             #
             # The first user will be used to add the storage to Cyber Recovery
             #
+            # This first user will be used to add DD to Cyber Recovery
+            #
             # users:
             # - force_password_change: false
             #   max_days_between_change: 99999
@@ -34,10 +36,11 @@ all:
             users_to_configure:
               sysadmin:
                 user: sysadmin
-                password: Pa%w0rd123
+                password: "CHANGE_ME: password for sysadmin"
               secofficer:
-                user: secofficer                
-                password: officer_Pa=w0rd123
+                user: secofficer
+                # Default password for secofficer if not present
+                password: Passw0rd=secofficer
           vmware:
             #
             # Cluster, datacenter and folder are required if deploying to VSphere
@@ -46,24 +49,25 @@ all:
             # datacenter: Home
             # folder: Demo
             #
-            datastore: datastore1
+            datastore: datastore
             diskmode: thin
-            host: 192.168.1.160
+            host: "CHANGE_ME: Ip for the esxi/vcenter"
             vm_name: cr-vault
             users_to_configure:
               admin:
                 user: root
-                password: VMware1!
+                # Password to connect to vcenter/esxi
+                password: Passw0rd
           cr:
             config:
-              default_gateway: 192.168.1.1
-              dns: 192.168.1.130
-              fqdn: cr.home.local
-              ip: 192.168.1.122
-              netmask: 255.255.255.0
-              network: VM Network
-              ntp: es.pool.ntp.org
-              timezone: Europe/Madrid
+              default_gateway: "CHANGE_ME: Default gateway for CR"
+              dns: "CHANGE_ME: Dns for CR"
+              fqdn: "CHANGE_ME: Fqdn for CR"
+              ip: "CHANGE_ME: Ip for CR"
+              netmask: "CHANGE_ME: Net mask for CR"
+              network: "CHANGE_ME: Network in esxi/vcenter to attach CR"
+              ntp: "CHANGE_ME: Ntp for CR"
+              timezone: "CHANGE_ME: Timezone for CR"
             ova: dellemc-cyber-recovery-19.15.0.2-33.ova
             #
             # List of users to create
