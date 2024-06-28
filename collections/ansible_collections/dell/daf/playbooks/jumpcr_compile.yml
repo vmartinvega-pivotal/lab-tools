@@ -17,7 +17,7 @@
       loop:
         - url: git@github.com:vmartinvega-pivotal/cyber-recovery-accelerator.git
           path: "{{ automation_repo }}"
-          #version: refactor_for_eps
+          version: "{{ jumpcr_branch_to_compile }}"
       loop_control:
         loop_var: repo
 
