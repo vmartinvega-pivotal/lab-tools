@@ -15,6 +15,7 @@
         state: powered-off
       delegate_to: localhost
 
+
     - name: Export ova
       ansible.builtin.include_role:
         name: dell.daf.accelerator

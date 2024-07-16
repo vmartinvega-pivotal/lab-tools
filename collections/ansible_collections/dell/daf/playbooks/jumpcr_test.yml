@@ -18,6 +18,40 @@
         path: "{{ local_folder }}/{{ ova.name }}"
       register: ova_response
 
+    - name: Check if vm exists
+      community.vmware.vmware_vm_info:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: false
+        folder: "/{{ datacenter_name }}/vm/{{ folder }}"
+      register: vms_info
+
+    - name: Shutdown VM
+      community.vmware.vmware_guest_powerstate:
+        name: "{{ name }}"
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: "{{ vcenter_validate_certs }}"
+        datacenter: "{{ datacenter_name }}"
+        state_change_timeout: 200
+        state: powered-off
+      when: vms_info.virtual_machines | selectattr('guest_name', '==', name) | length > 0
+      delegate_to: localhost
+
+    - name: Delete VM
+      community.vmware.vmware_guest:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: "{{ vcenter_validate_certs }}"
+        datacenter: "{{ datacenter_name }}"
+        name: "{{ name }}"
+        state: absent
+      when: vms_info.virtual_machines | selectattr('guest_name', '==', name) | length > 0
+      delegate_to: localhost
+
     - name: Deploy ova
       ansible.builtin.include_role:
         name: dell.daf.ova
@@ -25,28 +59,28 @@
         vm_name: "{{ name }}"
         vm_folder: "{{ folder }}"
 
-    - name: Upload ova to Deploy
+    - name: Upload Cyber Recovery ova to Deploy
       ansible.builtin.command: "scp /tmp/dellemc-cyber-recovery-19.15.0.2-33.ova daf@192.168.1.177:/srv/samba/share"
       delegate_to: localhost
       changed_when: true
 
-- name: Run Automations
-  hosts: jumpcrtest
-  gather_facts: false
-  become: false
-  tasks:
-    - name: Deploy Cyber Recovery from automation
-      ansible.builtin.command: "cr_automation inventory.yml cr_deploy"
-      changed_when: true
+# - name: Run Automations
+#   hosts: jumpcrtest
+#   gather_facts: false
+#   become: false
+#   tasks:
+#     - name: Deploy Cyber Recovery from automation
+#       ansible.builtin.command: "cr_automation inventory.yml cr_deploy"
+#       changed_when: true
 
-    - name: Setup Cyber Recovery from automation
-      ansible.builtin.command: "cr_automation inventory.yml cr_setup"
-      changed_when: true
+#     - name: Setup Cyber Recovery from automation
+#       ansible.builtin.command: "cr_automation inventory.yml cr_setup"
+#       changed_when: true
 
-    - name: Create users for Cyber Recovery from automation
-      ansible.builtin.command: "cr_automation inventory.yml cr_users"
-      changed_when: true
+#     - name: Create users for Cyber Recovery from automation
+#       ansible.builtin.command: "cr_automation inventory.yml cr_users"
+#       changed_when: true
 
-    - name: Create users for Cyber Recovery from automation
-      ansible.builtin.command: "cr_automation inventory.yml check_deployment"
-      changed_when: true
+#     - name: Create users for Cyber Recovery from automation
+#       ansible.builtin.command: "cr_automation inventory.yml check_deployment"
+#       changed_when: true

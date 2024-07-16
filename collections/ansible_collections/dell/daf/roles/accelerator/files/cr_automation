@@ -5,9 +5,15 @@ SAMBA_FOLDER=/srv/samba/share
 IMAGE=cr-automation:latest
 
 function usage {
-    echo "usage: $0 <project file> <command>"
+    echo "usage: $0 <type of project file> <project file> <command>"
+    echo ""
+    echo "  where type of project file is one of"
+    echo ""
+    echo "    eps  \"The project file refers to a yml file extracted from EPS and converted wirh EPS cli\""
+    echo "    inv  \"The project file refers to an ansible inventory yml file\""
     echo ""
     echo "  where command is one of"
+    echo ""
     echo "    - cr_deploy \"Deploys Cyber Recovery to an esxi/vcenter\""
     echo "    - cr_setup \"Initializes Cyber Recovery software with random passwords stored in keepass\""
     echo "    - cr_users \"Creates configured users in Cyber Recovery with random passwords stored in keepass\""
@@ -19,20 +25,46 @@ function usage {
     echo "    - full_automation \"Does a full automation configuring Cyber Recovery and Data Domain in the right order\""
 }
 
-if [ "$#" -ne 2 ]
+if [ "$#" -ne 3 ]
 then
     usage
     exit 1
 fi
 
-PROJECT_FILE="$1"
-usecase="$2"
+# Check if the variable has a value of "eps" or "inv"
+if [[ "$1" != "eps" && "$1" != "inv" ]]; then
+    usage
+    exit 1
+fi
+
+if [ "$1" = "inv" ]; then
+    argument="--inventory="
+else
+    argument="--eps="
+fi
+
+PROJECT_FILE="$2"
+usecase="$3"
+
 
 set -o nounset
 
 case "${usecase}" in
     cr_deploy|cr_setup|cr_users|cr_storage|dd_setup|dd_officer|checks|full_automation|check_deployment)
-        docker run -i -t -v "${SAMBA_FOLDER}":/cr --rm "${IMAGE}" "${usecase}".sh /cr /cr/"${PROJECT_FILE}"
+        docker run -i -t -v "${SAMBA_FOLDER}":/cr \
+         -e EPS_CR_DATASTORE="${EPS_CR_DATASTORE}" \
+         -e EPS_CR_DISK_MODE="${EPS_CR_DISK_MODE}" \
+         -e EPS_CR_DNS="${EPS_CR_DNS}" \
+         -e EPS_CR_NTP="${EPS_CR_NTP}" \
+         -e EPS_CR_NETWORK="${EPS_CR_NETWORK}" \
+         -e EPS_CR_VM_NAME="${EPS_CR_VM_NAME}" \
+         -e VC_USERNAME="${VC_USERNAME}" \
+         -e VC_PASSWORD="${VC_PASSWORD}" \
+         -e SYSADMIN_USERNAME="${SYSADMIN_USERNAME}" \
+         -e SYSADMIN_PASSWORD="${SYSADMIN_PASSWORD}" \
+         --rm "${IMAGE}" "${usecase}".sh \
+         --local_folder=/cr \
+         "${argument}"/cr/"${PROJECT_FILE}"
         ;;
     *)
         usage

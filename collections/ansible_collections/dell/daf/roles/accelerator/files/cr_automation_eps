@@ -1,0 +1,13 @@
+#!/bin/bash
+set -euo pipefail
+
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+
+export EPS_CR_DATASTORE=datastore1
+export EPS_CR_DISK_MODE=thin
+export EPS_CR_DNS=192.168.1.130
+export EPS_CR_NTP=es.pool.ntp.org
+export EPS_CR_NETWORK="VM Network"
+export EPS_CR_VM_NAME=cr-vault
+
+source "${SCRIPT_DIR}"/cr_automation "$@"

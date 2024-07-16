@@ -98,11 +98,14 @@
 
 - name: Copy cr_automation
   ansible.builtin.copy:
-    src: cr_automation
+    src: "{{ item }}"
     dest: "/usr/local/bin"
     mode: '0755'
     owner: daf
     group: daf
+  loop:
+    - cr_automation_eps
+    - cr_automation
 
 - name: Modify cr_automation
   ansible.builtin.lineinfile:
@@ -135,6 +138,7 @@
   loop:
     - lab.yml
     - inventory.yml
+    - eps.yml
     - inventory_template.yml
 
 # Remove unnecessary entries in /etc/hosts
