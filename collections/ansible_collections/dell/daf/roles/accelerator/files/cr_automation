@@ -56,8 +56,11 @@ case "${usecase}" in
          -e EPS_CR_DISK_MODE="${EPS_CR_DISK_MODE}" \
          -e EPS_CR_DNS="${EPS_CR_DNS}" \
          -e EPS_CR_NTP="${EPS_CR_NTP}" \
-         -e EPS_CR_NETWORK="${EPS_CR_NETWORK}" \
          -e EPS_CR_VM_NAME="${EPS_CR_VM_NAME}" \
+         -e EPS_CR_CLUSTER_NAME="${EPS_CR_CLUSTER_NAME}" \
+         -e EPS_CR_DATACENTER_NAME="${EPS_CR_DATACENTER_NAME}" \
+         -e EPS_CR_FOLDER_NAME="${EPS_CR_FOLDER_NAME}" \
+         -e EPS_CR_DEPLOY_TO_ESXI="${EPS_CR_DEPLOY_TO_ESXI}" \
          -e VC_USERNAME="${VC_USERNAME}" \
          -e VC_PASSWORD="${VC_PASSWORD}" \
          -e SYSADMIN_USERNAME="${SYSADMIN_USERNAME}" \

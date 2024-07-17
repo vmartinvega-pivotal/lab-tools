@@ -105,6 +105,7 @@
     group: daf
   loop:
     - cr_automation_eps
+    - cr_automation_eps_lab
     - cr_automation
 
 - name: Modify cr_automation
@@ -139,6 +140,7 @@
     - lab.yml
     - inventory.yml
     - eps.yml
+    - eps_lab.yml
     - inventory_template.yml
 
 # Remove unnecessary entries in /etc/hosts

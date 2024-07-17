@@ -8,23 +8,23 @@
   - management_server_parameters: Hypervisor Type
     value: VMware
   - management_server_parameters: Hypervisor Version
-    value: 7.0.2
+    value: 7.0.0
   - management_server_parameters: CR Software Version
-    value: 19.15
+    value: 19.16
   - management_server_parameters: CR Server OS
     value: CentOS
   cyber_recovery_management_server_system_configuration:
-  - hostname: crvault.home.local
-    ip_address: 192.168.1.140
+  - hostname: crvaultapp.demo.local
+    ip_address: 192.168.133.30
     vlan: VM Network
     subnet_mask: 255.255.255.0
-    gateway: 192.168.1.1
+    gateway: 192.168.133.1
     interfaces: ""
     interface_speed: ""
     interface_type: ""
     purpose: ""
   disaster_recovery_backups:
-  - dd_vault_hostname: ddvault.home.local
+  - dd_vault_hostname: ddvevault.demo.local
     mtree: /data/col1/DRCyberRecovery
     frequency_days: ""
     frequency_hrs: ""
@@ -37,8 +37,8 @@
   site_id: ""
   vault_esxi:
   - newexisting: New
-    hostname: esxi73.demo.local
-    ip_address: 192.168.1.160
+    hostname: esxi02.demo.local
+    ip_address: 192.168.133.11
     vsan: false
     vlan: VM Network
   data_domain_form:
@@ -116,7 +116,7 @@
     - DNS server 1
     - DNS server 2
     values:
-    - 192.168.1.130
+    - 192.168.133.254
     - ""
   - details:
     - System location
@@ -145,10 +145,10 @@
   network_settings:
   - interface: vmeth0
     aggregation_setting: None
-    hostname: ddvault.home.local
-    ip_address: 192.168.1.141
+    hostname: ddvevault.demo.local
+    ip_address: 192.168.133.150
     netmask: 255.255.255.0
-    gateway: 192.168.1.1
+    gateway: 192.168.133.1
     purpose: Management
   - interface: ""
     aggregation_setting: ""

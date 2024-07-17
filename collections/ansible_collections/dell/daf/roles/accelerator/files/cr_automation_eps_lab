@@ -3,14 +3,14 @@ set -euo pipefail
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
-export EPS_CR_DATASTORE=datastore1
+export EPS_CR_DATASTORE=datastore2
 export EPS_CR_DISK_MODE=thin
-export EPS_CR_DNS=192.168.1.130
-export EPS_CR_NTP=es.pool.ntp.org
+export EPS_CR_DNS=192.168.133.254
+export EPS_CR_NTP=192.168.133.254
 export EPS_CR_VM_NAME=cr-vault
 export EPS_CR_DEPLOY_TO_ESXI=True
-export EPS_CR_CLUSTER_NAME=Home-Cluster
-export EPS_CR_DATACENTER_NAME=Home
-export EPS_CR_FOLDER_NAME=Demo
+export EPS_CR_CLUSTER_NAME=Not_Used
+export EPS_CR_DATACENTER_NAME=Not_Used
+export EPS_CR_FOLDER_NAME=Not_Used
 
 source "${SCRIPT_DIR}"/cr_automation "$@"
