@@ -10,7 +10,8 @@
                 "gruntfuggly.todo-tree",
                 "donjayamanne.python-environment-manager",
                 "tomoki1207.pdf",
-                "ms-toolsai.jupyter"
+                "ms-toolsai.jupyter",
+                "GitHub.copilot"
             ],
             "settings": {
                 "ansible.python.interpreterPath": "/opt/conda/bin/python"

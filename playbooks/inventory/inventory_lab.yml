@@ -190,6 +190,14 @@ all:
                 ip: 192.168.1.176
               - name: 'jumpcrtest'
                 ip: 192.168.1.177
+              - name: 'cseth0'
+                ip: 192.168.1.178
+              - name: 'cseth1'
+                ip: 192.168.1.179
+              - name: 'cseth2'
+                ip: 192.168.1.180
+              - name: 'cseth3'
+                ip: 192.168.1.181
     testlinuxvm:
       hosts:
         192.168.1.148:
@@ -562,7 +570,7 @@ all:
                 name: cradmin
                 role: admin
           ova:
-            name: dellemc-cyber-recovery-19.14.0.2-16.ova
+            name: dellemc-cyber-recovery-19.15.0.2-33.ova
             diskmode: thin
             network:
               - origin: "VM Network"
