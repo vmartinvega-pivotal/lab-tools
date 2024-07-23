@@ -89,7 +89,7 @@
       delegate_to: localhost
       changed_when: true
 
-- name: Full test 'full_automation' reading from EPS to vCenter
+- name: Full test 'full_automation' reading from EPS deploying vCenter
   hosts: jumpcrtest
   gather_facts: false
   become: false
@@ -105,7 +105,7 @@
         username: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
         validate_certs: false
-        folder: "/{{ datacenter_name }}/vm/{{ folder }}"
+        folder: "/{{ datacenter_name }}/vm"
       delegate_to: localhost
       register: vms_info
 
@@ -152,8 +152,19 @@
       changed_when: true
 
     - name: Run 'full_automation' command
-      ansible.builtin.command: "cr_automation_eps eps {{ eps_inventory }} full_automation"
-      changed_when: true
+      block:
+        - name: Run 'full_automation' command
+          ansible.builtin.command: "cr_automation_eps eps {{ eps_inventory }} full_automation"
+          changed_when: true
+          register: full_automation_output
+      rescue:
+        - name: Print output
+          ansible.builtin.debug:
+            msg: "{{ full_automation_output.stdout_lines }}"
+
+        - name: Fail
+          ansible.builtin.fail:
+            msg: "Failed to run 'full_automation' command"
 
     - name: Check 'deployment'
       ansible.builtin.command: "cr_automation_eps eps {{ eps_inventory }} check_deployment"

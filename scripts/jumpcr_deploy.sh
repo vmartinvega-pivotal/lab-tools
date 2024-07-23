@@ -30,10 +30,10 @@ ansible-playbook --vault-password-file "${SCRIPT_DIR}/../vault_pass.txt" --extra
     --extra-vars "jumpcr_version=$1" \
     dell.daf.jumpcr_export.yml
 
-export VC_USERNAME=administrator
+export VC_USERNAME=administrator@home.local
 export VC_PASSWORD=M@r1n@yc@rl0S
 export ESXI_USERNAME=root
-export VC_PASSWORD=VMware1!
+export ESXI_PASSWORD=VMware1!
 export SYSADMIN_USERNAME=sysadmin
 export SYSADMIN_PASSWORD=Pa%w0rd123
 # A value of False indicates that the OVA es for release (no inventory files for testing)
