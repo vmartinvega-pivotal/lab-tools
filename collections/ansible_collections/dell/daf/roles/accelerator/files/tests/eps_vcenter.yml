@@ -1,0 +1,196 @@
+- template_name: cyber_recovery__cybersense_data_protection
+  project_id: "24062024"
+  cr_notes: ""
+  dr_notes: ""
+  cyber_recover_management_server_general_info:
+  - management_server_parameters: CR Management Server Type
+    value: Virtual (OVA)
+  - management_server_parameters: Hypervisor Type
+    value: VMware
+  - management_server_parameters: Hypervisor Version
+    value: 7.0.2
+  - management_server_parameters: CR Software Version
+    value: 19.15
+  - management_server_parameters: CR Server OS
+    value: CentOS
+  cyber_recovery_management_server_system_configuration:
+  - hostname: crvault.home.local
+    ip_address: 192.168.1.140
+    vlan: VM Network
+    subnet_mask: 255.255.255.0
+    gateway: 192.168.1.1
+    interfaces: ""
+    interface_speed: ""
+    interface_type: ""
+    purpose: ""
+  disaster_recovery_backups:
+  - dd_vault_hostname: ddvault.home.local
+    mtree: /data/col1/DRCyberRecovery
+    frequency_days: ""
+    frequency_hrs: ""
+- template_name: cyber_recovery__cybersense_data_protection
+  project_id: "24062024"
+  vcenter_and_or_esxi:
+  - Vcenter
+  brdc_approval_#: ""
+  sales_orders: ""
+  site_id: ""
+  vault_vcenter:
+  - vxrail: false
+    vcenter_version: 7.0.2
+    vcenter_ip_address: 192.168.1.101
+    vcenter_hostname: vcenter.home.local
+    '#_esxi_hosts': ""
+    '#_vms': cr-vault
+    vlan: VM Network
+  data_domain_form:
+  - Please add one or more Data Domain forms
+  - as needed
+  - ""
+  - to this project and complete as necessary
+  data_domain_notes: ""
+  dns_notes: ""
+  networking_notes: ""
+  ntp_notes: ""
+  smtp_notes: ""
+  vcenteresxivsan_notes: ""
+  vault_network:
+  - field: Domain Name
+    value: home.local
+  - field: Time Zone
+    value: America/Chicago
+  - field: SNMP
+    value: Off
+  - field: SMTP
+    value: ""
+  - field: Receipts Email Address
+    value: ""
+  - field: Active Directory
+    value: ""
+  dns_name_resolution:
+  - configuration: ""
+    ip_addresses: ""
+  ntp:
+  - configuration: ""
+    ip_addresses: ""
+- template_name: data_domain_data_protection
+  project_id: "24062024"
+  data_center_readiness_checklist: false
+  deployment_is_part_of_a_cyber_recovery_project: true
+  enableddisabled__network_access_protocols:
+  - SSH
+  - FTPS
+  - SCP
+  - HTTPS
+  engagement_type: New Install
+  licensed_features:
+  - I OS
+  - Capacity Active
+  - Replication
+  - DDBoost
+  - Retention Lock Compliance
+  network_settings__additional_notes: ""
+  onpremise_hypervisor__additional_notes: ""
+  system_configuration__additional_notes: ""
+  system_details__additional_notes: ""
+  licensetla_sales_order: ""
+  sales_order: ""
+  site_id: ""
+  system_serial_number: ""
+  service_tag: ""
+  system_identifiers:
+  - service_tag: ""
+    system_serial_number: ""
+    site_id: ""
+    sales_order: ""
+  onpremise_hypervisor_details:
+  - hypervisor_type: VMware
+    hypervisor_version: ""
+    operating_system: ""
+  system_configuration:
+  - details:
+    - Host Name
+    - Domain
+    values:
+    - ddvevault.demo.local
+    - demo.local
+  - details:
+    - DNS server 1
+    - DNS server 2
+    values:
+    - 192.168.1.130
+    - ""
+  - details:
+    - System location
+    - ""
+    values: ""
+  - details:
+    - Mail server (SMTP)
+    - Email alert recipient
+    values: ""
+  - details:
+    - Timezone
+    - NTP Multicast
+    values:
+    - Select one
+    - false
+  - details:
+    - NTP server 1
+    - NTP server 2
+    values: ""
+  - details:
+    - Security officer username
+    - Security Officer Password
+    values:
+    - secman
+    - Password!123
+  network_settings:
+  - interface: ethV0
+    aggregation_setting: None
+    hostname: ddvault.home.local
+    ip_address: 192.168.1.141
+    netmask: 255.255.255.0
+    gateway: 192.168.1.1
+    purpose: Management
+  - interface: ethV1
+    aggregation_setting: None
+    hostname: ddvault.home.local
+    ip_address: 192.168.1.142
+    netmask: 255.255.255.0
+    gateway: 192.168.1.1
+    purpose: CR replication
+  - interface: ""
+    aggregation_setting: ""
+    hostname: ""
+    ip_address: ""
+    netmask: ""
+    gateway: ""
+    purpose: ""
+  - interface: ""
+    aggregation_setting: ""
+    hostname: ""
+    ip_address: ""
+    netmask: ""
+    gateway: ""
+    purpose: ""
+  replication:
+  - source_target_or_both: Select one
+    software_or_dd_replication: Select one
+    replication_type: Select one
+    wan_throttling: Disabled (by default)
+    isolated_recovery_used: Select one
+  replication_details:
+  - replication_type: Select one
+    source_hostname: ""
+    target_hostname: ""
+    source_path: ""
+    destination_path: ""
+    low_bandwidth: Select one
+    propagate_retention_lock: ""
+    encryption_over_wire: Select one
+    enable_encryption: Select one
+  dd_boost:
+  - ddboost_type: Select one
+    boost_username: ""
+    ddboost_password: ""
+    ddboost_user_uid: ""

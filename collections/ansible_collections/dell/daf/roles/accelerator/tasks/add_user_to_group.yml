@@ -1,8 +1,0 @@
-- name: Add User to group
-  ansible.builtin.script: >-
-    add_user_to_group.sh
-    {{ inventory_hostname }}
-    {{ login_user }}
-    {{ login_password | quote }}
-    {{ user }}
-  delegate_to: localhost

@@ -46,6 +46,13 @@ fi
 PROJECT_FILE="$2"
 usecase="$3"
 
+# Checks if there is a file env.list in samba share
+if [ ! -f "${SAMBA_FOLDER}/automation.env" ]; then
+    # Creates an empty file
+    touch "${SAMBA_FOLDER}/automation.env"
+fi
+
+source "${SAMBA_FOLDER}/automation.env"
 
 set -o nounset
 

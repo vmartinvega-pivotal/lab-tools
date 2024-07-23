@@ -21,13 +21,24 @@
       loop_control:
         loop_var: repo
 
-    - name: TODO. Investigare why this wait for docker to become ready to connect is needed, otherwise the build fails with permission denied
-      ansible.builtin.pause:
-        minutes: 5
+    - name: Add user daf to docker group
+      ansible.builtin.command: >-
+        usermod -aG docker daf
+      become: true
+      changed_when: true
+      register: add_user_to_docker_group
+
+    - name: Change permissions for docker.sock
+      ansible.builtin.command: >-
+        chown daf /var/run/docker.sock
+      become: true
+      changed_when: true
+      register: add_user_to_docker_group
 
     - name: Build image
       ansible.builtin.shell: >-
-        cd /home/{{ user_set_up }}/{{ automation_repo }} && ./build/utils/docker_compile.sh 
+        cd /home/{{ user_set_up }}/{{ automation_repo }} && ./build/utils/docker_compile.sh
+      changed_when: true
 
     - name: Remove directory
       ansible.builtin.file:

@@ -8,6 +8,40 @@
       ansible.builtin.set_fact:
         local_folder: "{{ lookup('env', 'LOCAL_FOLDER') or '/tmp' }}"
 
+    - name: Check if vm exists
+      community.vmware.vmware_vm_info:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: false
+        folder: "/{{ datacenter_name }}/vm/{{ folder }}"
+      register: vms_info
+
+    - name: Shutdown VM
+      community.vmware.vmware_guest_powerstate:
+        name: "{{ name }}"
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: "{{ vcenter_validate_certs }}"
+        datacenter: "{{ datacenter_name }}"
+        state_change_timeout: 200
+        state: powered-off
+      when: vms_info.virtual_machines | selectattr('guest_name', '==', name) | length > 0
+      delegate_to: localhost
+
+    - name: Delete VM
+      community.vmware.vmware_guest:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: "{{ vcenter_validate_certs }}"
+        datacenter: "{{ datacenter_name }}"
+        name: "{{ name }}"
+        state: absent
+      when: vms_info.virtual_machines | selectattr('guest_name', '==', name) | length > 0
+      delegate_to: localhost
+      
     - name: Check if the ova exists locally
       ansible.builtin.stat:
         path: "{{ local_folder }}/{{ ova.name }}"

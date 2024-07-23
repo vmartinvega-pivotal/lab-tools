@@ -88,20 +88,6 @@
         name: dell.daf.accelerator
         tasks_from: setup_tools
 
-- name: Add daf user to docker group
-  hosts: jumpcr
-  gather_facts: false
-  connection: local
-  tasks:
-    - name: Add user daf to docker group
-      ansible.builtin.include_role:
-        name: dell.daf.accelerator
-        tasks_from: add_user_to_group
-      vars:
-        login_user: vicente
-        login_password: changeme
-        user: daf
-
 - name: Create Samba User
   hosts: jumpcr
   gather_facts: false

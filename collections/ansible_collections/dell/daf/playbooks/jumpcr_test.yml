@@ -1,4 +1,7 @@
 ---
+# Deploys an empty Data Domain for testing (ddvault)
+- import_playbook: dd_deploy.yml
+
 - name: Deploy Ova
   hosts: jumpcrtest
   connection: local
@@ -9,14 +12,9 @@
       ansible.builtin.set_fact:
         local_folder: "./"
 
-    - name: Set ova to test
+    - name: Set ova for jumpcr
       ansible.builtin.set_fact:
         ova: "{{ ova | combine({'name': variable_ova_to_test}) }}"
-
-    - name: Check if the ova exists locally
-      ansible.builtin.stat:
-        path: "{{ local_folder }}/{{ ova.name }}"
-      register: ova_response
 
     - name: Check if vm exists
       community.vmware.vmware_vm_info:
@@ -25,7 +23,8 @@
         password: "{{ vcenter_password }}"
         validate_certs: false
         folder: "/{{ datacenter_name }}/vm/{{ folder }}"
-      register: vms_info
+      delegate_to: localhost
+      register: vms_info  
 
     - name: Shutdown VM
       community.vmware.vmware_guest_powerstate:
@@ -52,35 +51,110 @@
       when: vms_info.virtual_machines | selectattr('guest_name', '==', name) | length > 0
       delegate_to: localhost
 
-    - name: Deploy ova
+    - name: Deploy ova for jumpcr
       ansible.builtin.include_role:
         name: dell.daf.ova
       vars:
         vm_name: "{{ name }}"
         vm_folder: "{{ folder }}"
 
-    - name: Upload Cyber Recovery ova to Deploy
-      ansible.builtin.command: "scp /tmp/dellemc-cyber-recovery-19.15.0.2-33.ova daf@192.168.1.177:/srv/samba/share"
+    # Download the ova for Cyber Recovery used for testing
+    - name: Set fact for local folder
+      ansible.builtin.set_fact:
+        local_folder: "{{ lookup('env', 'LOCAL_FOLDER') or '/tmp' }}"
+        samba_share: /srv/samba/share
+        user_samba_share: daf
+        env_file: /tmp/automation.env
+
+    - name: Check if the ova exists locally
+      ansible.builtin.stat:
+        path: "{{ local_folder }}/{{ cr_ova_to_test }}"
+      register: ova_response
+
+    - name: Download the ova
+      ansible.builtin.include_role:
+        name: dell.daf.vcenter
+        tasks_from: get_from_datastore
+      vars:
+        vc_server: "{{ vcenter_hostname }}"
+        vc_username: "{{ vcenter_username }}"
+        vc_password: "{{ vcenter_password }}"
+        datastore: "{{ datastore_name }}"
+        source_path: "ova/dell/cr/{{ cr_ova_to_test }}"
+        target_path: "{{ local_folder }}/{{ cr_ova_to_test }}"
+      when: not ova_response.stat.exists
+
+    - name: Upload Cyber Recovery ova for testing
+      ansible.builtin.command: "scp {{ local_folder }}/{{ cr_ova_to_test }} {{ user_samba_share }}@{{ inventory_hostname }}:{{ samba_share }}"
       delegate_to: localhost
       changed_when: true
 
-# - name: Run Automations
-#   hosts: jumpcrtest
-#   gather_facts: false
-#   become: false
-#   tasks:
-#     - name: Deploy Cyber Recovery from automation
-#       ansible.builtin.command: "cr_automation inventory.yml cr_deploy"
-#       changed_when: true
+- name: Full test 'full_automation' reading from EPS to vCenter
+  hosts: jumpcrtest
+  gather_facts: false
+  become: false
+  tasks:
+    - name: Set fact cyber recovery vm for testing
+      ansible.builtin.set_fact:
+        cyber_recovery_vm_for_testing: cr-vault
+        eps_inventory: tests/eps_vcenter.yml
 
-#     - name: Setup Cyber Recovery from automation
-#       ansible.builtin.command: "cr_automation inventory.yml cr_setup"
-#       changed_when: true
+    - name: Check if vm exists
+      community.vmware.vmware_vm_info:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: false
+        folder: "/{{ datacenter_name }}/vm/{{ folder }}"
+      delegate_to: localhost
+      register: vms_info
 
-#     - name: Create users for Cyber Recovery from automation
-#       ansible.builtin.command: "cr_automation inventory.yml cr_users"
-#       changed_when: true
+    - name: Shutdown VM
+      community.vmware.vmware_guest_powerstate:
+        name: "{{ cyber_recovery_vm_for_testing }}"
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: "{{ vcenter_validate_certs }}"
+        datacenter: "{{ datacenter_name }}"
+        state_change_timeout: 200
+        state: powered-off
+      when: vms_info.virtual_machines | selectattr('guest_name', '==', cyber_recovery_vm_for_testing) | length > 0
+      delegate_to: localhost
 
-#     - name: Create users for Cyber Recovery from automation
-#       ansible.builtin.command: "cr_automation inventory.yml check_deployment"
-#       changed_when: true
+    - name: Delete VM
+      community.vmware.vmware_guest:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: "{{ vcenter_validate_certs }}"
+        datacenter: "{{ datacenter_name }}"
+        name: "{{ cyber_recovery_vm_for_testing }}"
+        state: absent
+      when: vms_info.virtual_machines | selectattr('guest_name', '==', cyber_recovery_vm_for_testing) | length > 0
+      delegate_to: localhost
+
+    - name: Creates a file with the environment variables
+      ansible.builtin.copy:
+        content: |
+          export VC_USERNAME={{ lookup('env', 'VC_USERNAME') }}
+          export VC_PASSWORD={{ lookup('env', 'VC_PASSWORD') }}
+          export SYSADMIN_USERNAME={{ lookup('env', 'SYSADMIN_USERNAME') }}
+          export SYSADMIN_PASSWORD={{ lookup('env', 'SYSADMIN_PASSWORD') }}
+          export EPS_CR_DEPLOY_TO_ESXI=False
+        dest: "{{ env_file }}"
+        mode: '0644'
+      delegate_to: localhost
+
+    - name: Upload automation.env file
+      ansible.builtin.command: "scp {{ env_file }} {{ user_samba_share }}@{{ inventory_hostname }}:{{ samba_share }}"
+      delegate_to: localhost
+      changed_when: true
+
+    - name: Run 'full_automation' command
+      ansible.builtin.command: "cr_automation_eps eps {{ eps_inventory }} full_automation"
+      changed_when: true
+
+    - name: Check 'deployment'
+      ansible.builtin.command: "cr_automation_eps eps {{ eps_inventory }} check_deployment"
+      changed_when: true

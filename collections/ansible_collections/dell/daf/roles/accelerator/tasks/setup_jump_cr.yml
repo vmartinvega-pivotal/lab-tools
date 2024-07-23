@@ -143,6 +143,26 @@
     - eps_lab.yml
     - inventory_template.yml
 
+- name: Create tests folder
+  ansible.builtin.file:
+    path: "{{ share }}/tests"
+    state: directory
+    mode: '0755'
+    owner: daf
+    group: daf
+  when: lookup('env', 'JUMPCR_COMPILE_FOR_TESTING') or True
+
+- name: Copy files for testing
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ share }}/tests"
+    mode: '0644'
+    owner: daf
+    group: daf
+  when: lookup('env', 'JUMPCR_COMPILE_FOR_TESTING') or True
+  loop:
+    - tests/eps_vcenter.yml
+
 # Remove unnecessary entries in /etc/hosts
 - name: Modify /etc/hosts
   ansible.builtin.lineinfile:
