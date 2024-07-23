@@ -166,6 +166,66 @@
           ansible.builtin.fail:
             msg: "Failed to run 'full_automation' command"
 
+    - name: Run 'cr_users' command (idempotent)
+      block:
+        - name: Run 'cr_users' command
+          ansible.builtin.command: "cr_automation_eps eps {{ eps_inventory }} cr_users"
+          changed_when: true
+          register: cr_users_output
+      rescue:
+        - name: Print output
+          ansible.builtin.debug:
+            msg: "{{ cr_users_output.stdout_lines }}"
+
+        - name: Fail
+          ansible.builtin.fail:
+            msg: "Failed to run 'cr_users' command"
+
+    - name: Run 'cr_storage' command (idempotent)
+      block:
+        - name: Run 'cr_storage' command
+          ansible.builtin.command: "cr_automation_eps eps {{ eps_inventory }} cr_storage"
+          changed_when: true
+          register: cr_storage_output
+      rescue:
+        - name: Print output
+          ansible.builtin.debug:
+            msg: "{{ cr_storage_output.stdout_lines }}"
+
+        - name: Fail
+          ansible.builtin.fail:
+            msg: "Failed to run 'cr_storage' command"
+
+    - name: Run 'dd_setup' command (idempotent)
+      block:
+        - name: Run 'dd_setup' command
+          ansible.builtin.command: "cr_automation_eps eps {{ eps_inventory }} dd_setup"
+          changed_when: true
+          register: dd_setup_output
+      rescue:
+        - name: Print output
+          ansible.builtin.debug:
+            msg: "{{ dd_setup_output.stdout_lines }}"
+
+        - name: Fail
+          ansible.builtin.fail:
+            msg: "Failed to run 'dd_setup' command"
+
+    - name: Run 'dd_officer' command (idempotent)
+      block:
+        - name: Run 'dd_officer' command
+          ansible.builtin.command: "cr_automation_eps eps {{ eps_inventory }} dd_officer"
+          changed_when: true
+          register: dd_office_output
+      rescue:
+        - name: Print output
+          ansible.builtin.debug:
+            msg: "{{ dd_office_output.stdout_lines }}"
+
+        - name: Fail
+          ansible.builtin.fail:
+            msg: "Failed to run 'dd_officer' command"
+
     - name: Check 'deployment'
       ansible.builtin.command: "cr_automation_eps eps {{ eps_inventory }} check_deployment"
       changed_when: true
