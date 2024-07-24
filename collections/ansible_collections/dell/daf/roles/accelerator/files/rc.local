@@ -71,6 +71,9 @@ EOF
             # systemctl restart systemd-networkd
             # service ufw stop
             # ufw disable
+            if [ -d "/home/daf/cyber-recovery-accelerator" ]; then
+              rm -rf "/home/daf/cyber-recovery-accelerator"
+            fi
     fi
     touch /root/ran_customization
 fi
