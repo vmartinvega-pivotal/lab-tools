@@ -1,0 +1,145 @@
+---
+# Deploys an empty Data Domain for testing (ddvault)
+- import_playbook: dd_deploy.yml
+
+- name: Prepare esxi for testing
+  hosts: esxi73
+  gather_facts: false
+  become: false
+  tasks:
+    - name: Revert snapshot to empty
+      community.vmware.vmware_guest_snapshot:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        folder: "/{{ folder }}"
+        name: "{{ name }}"
+        datacenter: "{{ datacenter_name }}"
+        validate_certs: false
+        state: revert
+        snapshot_name: empty
+        memory_dump: true
+      delegate_to: localhost
+
+- name: Run test
+  hosts: jumpcrtest
+  gather_facts: false
+  become: false
+  tasks:
+    ##
+    # Removes the cyber recovery VM used for testing
+    ##
+    - name: Check if vm exists
+      community.vmware.vmware_vm_info:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: false
+        folder: "/{{ datacenter_name }}/vm"
+      delegate_to: localhost
+      register: vms_info
+
+    - name: Shutdown VM
+      community.vmware.vmware_guest_powerstate:
+        name: "{{ cyber_recovery_vm_for_testing }}"
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: "{{ vcenter_validate_certs }}"
+        datacenter: "{{ datacenter_name }}"
+        state_change_timeout: 200
+        state: powered-off
+      when: vms_info.virtual_machines | selectattr('guest_name', '==', cyber_recovery_vm_for_testing) | length > 0
+      delegate_to: localhost
+
+    - name: Delete VM
+      community.vmware.vmware_guest:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: "{{ vcenter_validate_certs }}"
+        datacenter: "{{ datacenter_name }}"
+        name: "{{ cyber_recovery_vm_for_testing }}"
+        state: absent
+      when: vms_info.virtual_machines | selectattr('guest_name', '==', cyber_recovery_vm_for_testing) | length > 0
+      delegate_to: localhost
+
+    - name: Run 'full_automation' command
+      block:
+        - name: Run 'full_automation' command
+          ansible.builtin.command: "{{ command }} {{ inventory_or_eps }} {{ yaml_file }} full_automation"
+          changed_when: true
+          register: full_automation_output
+      rescue:
+        - name: Print output
+          ansible.builtin.debug:
+            msg: "{{ full_automation_output.stdout_lines }}"
+
+        - name: Fail
+          ansible.builtin.fail:
+            msg: "Failed to run 'full_automation' command"
+
+    - name: Run 'cr_users' command (idempotent)
+      block:
+        - name: Run 'cr_users' command
+          ansible.builtin.command: "{{ command }} {{ inventory_or_eps }} {{ yaml_file }} cr_users"
+          changed_when: true
+          register: cr_users_output
+      rescue:
+        - name: Print output
+          ansible.builtin.debug:
+            msg: "{{ cr_users_output.stdout_lines }}"
+
+        - name: Fail
+          ansible.builtin.fail:
+            msg: "Failed to run 'cr_users' command"
+
+    - name: Run 'cr_storage' command (idempotent)
+      block:
+        - name: Run 'cr_storage' command
+          ansible.builtin.command: "{{ command }} {{ inventory_or_eps }} {{ yaml_file }} cr_storage"
+          changed_when: true
+          register: cr_storage_output
+      rescue:
+        - name: Print output
+          ansible.builtin.debug:
+            msg: "{{ cr_storage_output.stdout_lines }}"
+
+        - name: Fail
+          ansible.builtin.fail:
+            msg: "Failed to run 'cr_storage' command"
+
+    - name: Run 'dd_setup' command (idempotent)
+      block:
+        - name: Run 'dd_setup' command
+          ansible.builtin.command: "{{ command }} {{ inventory_or_eps }} {{ yaml_file }} dd_setup"
+          changed_when: true
+          register: dd_setup_output
+      rescue:
+        - name: Print output
+          ansible.builtin.debug:
+            msg: "{{ dd_setup_output.stdout_lines }}"
+
+        - name: Fail
+          ansible.builtin.fail:
+            msg: "Failed to run 'dd_setup' command"
+
+    - name: Run 'dd_officer' command (idempotent)
+      block:
+        - name: Run 'dd_officer' command
+          ansible.builtin.command: "{{ command }} {{ inventory_or_eps }} {{ yaml_file }} dd_officer"
+          changed_when: true
+          register: dd_office_output
+      rescue:
+        - name: Print output
+          ansible.builtin.debug:
+            msg: "{{ dd_office_output.stdout_lines }}"
+
+        - name: Fail
+          ansible.builtin.fail:
+            msg: "Failed to run 'dd_officer' command"
+
+    - name: Check 'deployment'
+      ansible.builtin.command: "{{ command }} {{ inventory_or_eps }} {{ yaml_file }} check_deployment"
+      changed_when: true
+

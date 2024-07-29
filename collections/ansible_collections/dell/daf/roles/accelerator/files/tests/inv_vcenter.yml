@@ -1,0 +1,160 @@
+---
+all:
+  children:
+    automation:
+      hosts:
+        crs:
+          dd_vault:
+            fqdn: ddvault.home.local
+            networks:
+            - interface: ethV0
+              ip: 192.168.1.141
+              netmask: 255.255.255.0
+              network: Management
+            - interface: ethV1
+              ip: 192.168.1.142
+              netmask: 255.255.255.0
+              network: CR Replication
+            mtrees:
+            - name: /data/col1/DRCyberRecovery
+            users:
+            - force_password_change: false
+              max_days_between_change: 99999
+              name: crint
+              role: admin
+              uid: 550
+              warn_days_before_expire: 7
+              config:
+                add_ddboost: false
+                ci: cr
+              password: Passw0rd=crint_test
+            # - force_password_change: false
+            #   max_days_between_change: 99999
+            #   name: cybersense_none
+            #   role: none
+            #   uid: 841
+            #   warn_days_before_expire: 7
+            #   config:
+            #     add_ddboost: true
+            #     ci: cs
+            #   password: Passw0rd=cybersense_none
+            # - force_password_change: false
+            #   max_days_between_change: 99999
+            #   name: cybersense_admin
+            #   role: admin
+            #   uid: 842
+            #   warn_days_before_expire: 7
+            #   config:
+            #     add_ddboost: true
+            #     ci: cs
+            #   password: Passw0rd=cybersense_admin
+            # - force_password_change: false
+            #   max_days_between_change: 99999
+            #   name: cybersense_user
+            #   role: user
+            #   uid: 843
+            #   warn_days_before_expire: 7
+            #   config:
+            #     add_ddboost: true
+            #     ci: cs
+            #   password: Passw0rd=cybersense_user
+            users_to_configure:
+              sysadmin:
+                user: sysadmin
+                password: Pa%w0rd123
+              secofficer:
+                user: secofficer                
+                password: Passw0rd=officer_test
+          cs:
+            config:
+              default_gateway: 192.168.1.1
+              dns: 8.8.8.8
+              fqdn: cs.home.local
+              ntp: es.pool.ntp.org
+              timezone: Europe/Madrid
+              interfaces:
+                eth0:
+                  ip: 192.168.1.178
+                  netmask: 255.255.255.0
+                  network: VM Network
+                  dd_vault_link: ethV0
+                eth1:
+                  ip: 192.168.1.179
+                  netmask: 255.255.255.0
+                  network: VM Network
+                  dd_vault_link: ethV1
+                eth2:
+                  ip: 192.168.1.180
+                  netmask: 255.255.255.0
+                  network: VM Network
+                  dd_vault_link: ""
+                eth3:
+                  ip: 192.168.1.181
+                  netmask: 255.255.255.0
+                  network: VM Network
+            deployment: medium
+            ova: dellemc-cyber-sense-8.6.0-1.8.ova
+            vmware:
+              cluster: Home-Cluster
+              datacenter: Home
+              folder: Demo
+              datastore: datastore1
+              diskmode: thin
+              host: 192.168.1.101
+              users_to_configure:
+                admin:
+                  user: administrator@home.local
+                  password: M@r1n@yc@rl0S
+            users_to_configure:
+              admin:
+                user: admin
+                # password: Passw0rd=sysadmin
+              root:
+                user: root
+                # password: Passw0rd=root
+          cr:
+            config:
+              default_gateway: 192.168.1.1
+              dns: 8.8.8.8
+              fqdn: cr.home.local
+              ip: 192.168.1.140
+              netmask: 255.255.255.0
+              network: VM Network
+              ntp: es.pool.ntp.org
+              timezone: Europe/Madrid
+            ova: dellemc-cyber-recovery-19.15.0.2-33.ova
+            vmware:
+              cluster: Home-Cluster
+              datacenter: Home
+              folder: Demo
+              datastore: datastore1
+              diskmode: thin
+              host: 192.168.1.101
+              vm_name: cr-vault
+              users_to_configure:
+                admin:
+                  user: administrator@home.local
+                  password: M@r1n@yc@rl0S
+            users:
+            - email: noreply@cyberrecovery
+              first_name: cradmin
+              last_name: admin
+              name: cradmin
+              role: admin
+              password: Passw0rd=cradmin_test
+            users_to_configure:
+              root:
+                user: root
+                password: Passw0rd=root_test
+              admin:
+                user: admin
+                password: Passw0rd=admin_test
+              mongodb: 
+                user: mongodb
+                password: Passw0rd=mongodb_test
+              crso:
+                user: crso
+                password: Passw0rd=crso_test
+              lockbox: 
+                user: lockbox
+                password: Passw0rd=lockbox_test

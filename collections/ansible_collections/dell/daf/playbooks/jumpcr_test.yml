@@ -1,6 +1,17 @@
 ---
-# Deploys an empty Data Domain for testing (ddvault)
-- import_playbook: dd_deploy.yml
+- name: Deploy Ova
+  hosts: jumpcrtest
+  connection: local
+  gather_facts: false
+  become: false
+  tasks:
+    # Setting global facts
+    - name: Set fact for local folder
+      ansible.builtin.set_fact:
+        local_folder: "{{ lookup('env', 'LOCAL_FOLDER') or '/tmp' }}"
+        samba_share: /srv/samba/share
+        user_samba_share: daf
+        env_file: /tmp/automation.env
 
 - name: Deploy Ova
   hosts: jumpcrtest
@@ -24,7 +35,7 @@
         validate_certs: false
         folder: "/{{ datacenter_name }}/vm/{{ folder }}"
       delegate_to: localhost
-      register: vms_info  
+      register: vms_info
 
     - name: Shutdown VM
       community.vmware.vmware_guest_powerstate:
@@ -58,14 +69,6 @@
         vm_name: "{{ name }}"
         vm_folder: "{{ folder }}"
 
-    # Download the ova for Cyber Recovery used for testing
-    - name: Set fact for local folder
-      ansible.builtin.set_fact:
-        local_folder: "{{ lookup('env', 'LOCAL_FOLDER') or '/tmp' }}"
-        samba_share: /srv/samba/share
-        user_samba_share: daf
-        env_file: /tmp/automation.env
-
     - name: Check if the ova exists locally
       ansible.builtin.stat:
         path: "{{ local_folder }}/{{ cr_ova_to_test }}"
@@ -89,51 +92,12 @@
       delegate_to: localhost
       changed_when: true
 
-- name: Full test 'full_automation' reading from EPS deploying vCenter
+# Set automation values for testing
+- name: Setting variables for testing 'full_automation' reading from EPS deploying vCenter
   hosts: jumpcrtest
   gather_facts: false
   become: false
   tasks:
-    - name: Set fact cyber recovery vm for testing
-      ansible.builtin.set_fact:
-        cyber_recovery_vm_for_testing: cr-vault
-        eps_inventory: tests/eps_vcenter.yml
-
-    - name: Check if vm exists
-      community.vmware.vmware_vm_info:
-        hostname: "{{ vcenter_hostname }}"
-        username: "{{ vcenter_username }}"
-        password: "{{ vcenter_password }}"
-        validate_certs: false
-        folder: "/{{ datacenter_name }}/vm"
-      delegate_to: localhost
-      register: vms_info
-
-    - name: Shutdown VM
-      community.vmware.vmware_guest_powerstate:
-        name: "{{ cyber_recovery_vm_for_testing }}"
-        hostname: "{{ vcenter_hostname }}"
-        username: "{{ vcenter_username }}"
-        password: "{{ vcenter_password }}"
-        validate_certs: "{{ vcenter_validate_certs }}"
-        datacenter: "{{ datacenter_name }}"
-        state_change_timeout: 200
-        state: powered-off
-      when: vms_info.virtual_machines | selectattr('guest_name', '==', cyber_recovery_vm_for_testing) | length > 0
-      delegate_to: localhost
-
-    - name: Delete VM
-      community.vmware.vmware_guest:
-        hostname: "{{ vcenter_hostname }}"
-        username: "{{ vcenter_username }}"
-        password: "{{ vcenter_password }}"
-        validate_certs: "{{ vcenter_validate_certs }}"
-        datacenter: "{{ datacenter_name }}"
-        name: "{{ cyber_recovery_vm_for_testing }}"
-        state: absent
-      when: vms_info.virtual_machines | selectattr('guest_name', '==', cyber_recovery_vm_for_testing) | length > 0
-      delegate_to: localhost
-
     - name: Creates a file with the environment variables
       ansible.builtin.copy:
         content: |
@@ -151,81 +115,127 @@
       delegate_to: localhost
       changed_when: true
 
-    - name: Run 'full_automation' command
-      block:
-        - name: Run 'full_automation' command
-          ansible.builtin.command: "cr_automation_eps eps {{ eps_inventory }} full_automation"
-          changed_when: true
-          register: full_automation_output
-      rescue:
-        - name: Print output
-          ansible.builtin.debug:
-            msg: "{{ full_automation_output.stdout_lines }}"
+    - name: Set fact cyber recovery vm for testing
+      ansible.builtin.set_fact:
+        cyber_recovery_vm_for_testing: cr-vault
+        yaml_file: tests/eps_vcenter.yml
+        command: cr_automation_eps
+        inventory_or_eps: eps
 
-        - name: Fail
-          ansible.builtin.fail:
-            msg: "Failed to run 'full_automation' command"
+# Run full automation
+- import_playbook: jumpcr_test_automation.yml
 
-    - name: Run 'cr_users' command (idempotent)
-      block:
-        - name: Run 'cr_users' command
-          ansible.builtin.command: "cr_automation_eps eps {{ eps_inventory }} cr_users"
-          changed_when: true
-          register: cr_users_output
-      rescue:
-        - name: Print output
-          ansible.builtin.debug:
-            msg: "{{ cr_users_output.stdout_lines }}"
+# Set automation values for testing
+- name: Setting variables for testing 'full_automation' reading from EPS deploying ESXI
+  hosts: jumpcrtest
+  gather_facts: false
+  become: false
+  tasks:
+    - name: Creates a file with the environment variables
+      ansible.builtin.copy:
+        content: |
+          export VC_USERNAME={{ lookup('env', 'ESXI_USERNAME') }}
+          export VC_PASSWORD={{ lookup('env', 'ESXI_PASSWORD') }}
+          export SYSADMIN_USERNAME={{ lookup('env', 'SYSADMIN_USERNAME') }}
+          export SYSADMIN_PASSWORD={{ lookup('env', 'SYSADMIN_PASSWORD') }}
+          export EPS_CR_DEPLOY_TO_ESXI=True
+        dest: "{{ env_file }}"
+        mode: '0644'
+      delegate_to: localhost
 
-        - name: Fail
-          ansible.builtin.fail:
-            msg: "Failed to run 'cr_users' command"
-
-    - name: Run 'cr_storage' command (idempotent)
-      block:
-        - name: Run 'cr_storage' command
-          ansible.builtin.command: "cr_automation_eps eps {{ eps_inventory }} cr_storage"
-          changed_when: true
-          register: cr_storage_output
-      rescue:
-        - name: Print output
-          ansible.builtin.debug:
-            msg: "{{ cr_storage_output.stdout_lines }}"
-
-        - name: Fail
-          ansible.builtin.fail:
-            msg: "Failed to run 'cr_storage' command"
-
-    - name: Run 'dd_setup' command (idempotent)
-      block:
-        - name: Run 'dd_setup' command
-          ansible.builtin.command: "cr_automation_eps eps {{ eps_inventory }} dd_setup"
-          changed_when: true
-          register: dd_setup_output
-      rescue:
-        - name: Print output
-          ansible.builtin.debug:
-            msg: "{{ dd_setup_output.stdout_lines }}"
-
-        - name: Fail
-          ansible.builtin.fail:
-            msg: "Failed to run 'dd_setup' command"
-
-    - name: Run 'dd_officer' command (idempotent)
-      block:
-        - name: Run 'dd_officer' command
-          ansible.builtin.command: "cr_automation_eps eps {{ eps_inventory }} dd_officer"
-          changed_when: true
-          register: dd_office_output
-      rescue:
-        - name: Print output
-          ansible.builtin.debug:
-            msg: "{{ dd_office_output.stdout_lines }}"
-
-        - name: Fail
-          ansible.builtin.fail:
-            msg: "Failed to run 'dd_officer' command"
-
-    - name: Check 'deployment'
-      ansible.builtin.command: "cr_automation_eps eps {{ eps_inventory }} check_deployment"
+    - name: Upload automation.env file
+      ansible.builtin.command: "scp {{ env_file }} {{ user_samba_share }}@{{ inventory_hostname }}:{{ samba_share }}"
+      delegate_to: localhost
       changed_when: true
+
+    - name: Set fact cyber recovery vm for testing
+      ansible.builtin.set_fact:
+        cyber_recovery_vm_for_testing: cr-vault
+        yaml_file: tests/eps_esxi73.yml
+        command: cr_automation_eps
+        inventory_or_eps: eps
+
+# Run full automation
+- import_playbook: jumpcr_test_automation.yml
+
+# # Set automation values for testing
+- name: Setting variables for testing 'full_automation' reading from INVENTORY deploying VCENTER
+  hosts: jumpcrtest
+  gather_facts: false
+  become: false
+  tasks:
+    - name: Creates a file with the environment variables
+      ansible.builtin.copy:
+        content: |
+          export VC_USERNAME=read_from_inventory_not_here
+          export VC_PASSWORD=read_from_inventory_not_here
+          export SYSADMIN_USERNAME=read_from_inventory_not_here
+          export SYSADMIN_PASSWORD=read_from_inventory_not_here
+          export EPS_CR_DATASTORE=read_from_inventory_not_here
+          export EPS_CR_DISK_MODE=read_from_inventory_not_here
+          export EPS_CR_DNS=read_from_inventory_not_here
+          export EPS_CR_NTP=read_from_inventory_not_here
+          export EPS_CR_VM_NAME=read_from_inventory_not_here
+          export EPS_CR_CLUSTER_NAME=read_from_inventory_not_here
+          export EPS_CR_DATACENTER_NAME=read_from_inventory_not_here
+          export EPS_CR_FOLDER_NAME=read_from_inventory_not_here
+          export EPS_CR_DEPLOY_TO_ESXI=False
+        dest: "{{ env_file }}"
+        mode: '0644'
+      delegate_to: localhost
+
+    - name: Upload automation.env file
+      ansible.builtin.command: "scp {{ env_file }} {{ user_samba_share }}@{{ inventory_hostname }}:{{ samba_share }}"
+      delegate_to: localhost
+      changed_when: true
+
+    - name: Set fact cyber recovery vm for testing
+      ansible.builtin.set_fact:
+        cyber_recovery_vm_for_testing: cr-vault
+        yaml_file: tests/inv_vcenter.yml
+        command: cr_automation
+        inventory_or_eps: inv
+
+# Run full automation
+- import_playbook: jumpcr_test_automation.yml
+
+# Set automation values for testing
+- name: Setting variables for testing 'full_automation' reading from INVENTORY deploying ESXI
+  hosts: jumpcrtest
+  gather_facts: false
+  become: false
+  tasks:
+    - name: Creates a file with the environment variables
+      ansible.builtin.copy:
+        content: |
+          export VC_USERNAME=read_from_inventory_not_here
+          export VC_PASSWORD=read_from_inventory_not_here
+          export SYSADMIN_USERNAME=read_from_inventory_not_here
+          export SYSADMIN_PASSWORD=read_from_inventory_not_here
+          export EPS_CR_DATASTORE=read_from_inventory_not_here
+          export EPS_CR_DISK_MODE=read_from_inventory_not_here
+          export EPS_CR_DNS=read_from_inventory_not_here
+          export EPS_CR_NTP=read_from_inventory_not_here
+          export EPS_CR_VM_NAME=read_from_inventory_not_here
+          export EPS_CR_CLUSTER_NAME=read_from_inventory_not_here
+          export EPS_CR_DATACENTER_NAME=read_from_inventory_not_here
+          export EPS_CR_FOLDER_NAME=read_from_inventory_not_here
+          export EPS_CR_DEPLOY_TO_ESXI=True
+        dest: "{{ env_file }}"
+        mode: '0644'
+      delegate_to: localhost
+
+    - name: Upload automation.env file
+      ansible.builtin.command: "scp {{ env_file }} {{ user_samba_share }}@{{ inventory_hostname }}:{{ samba_share }}"
+      delegate_to: localhost
+      changed_when: true
+
+    - name: Set fact cyber recovery vm for testing
+      ansible.builtin.set_fact:
+        cyber_recovery_vm_for_testing: cr-vault
+        yaml_file: tests/inv_esxi.yml
+        command: cr_automation
+        inventory_or_eps: inv
+
+# Run full automation
+- import_playbook: jumpcr_test_automation.yml

@@ -13,3 +13,4 @@ nohup.out
 **/*.csv
 **/jumpcr.*
 **/jumpcr-*.*
+**/dellemc-cyber-recovery-*

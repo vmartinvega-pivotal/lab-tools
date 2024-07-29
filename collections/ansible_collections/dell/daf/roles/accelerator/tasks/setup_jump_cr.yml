@@ -162,6 +162,9 @@
   when: lookup('env', 'JUMPCR_COMPILE_FOR_TESTING') or True
   loop:
     - tests/eps_vcenter.yml
+    - tests/eps_esxi73.yml
+    - tests/inv_vcenter.yml
+    - tests/inv_esxi.yml
 
 # Remove unnecessary entries in /etc/hosts
 - name: Modify /etc/hosts
