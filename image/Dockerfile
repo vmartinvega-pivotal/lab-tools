@@ -36,6 +36,7 @@ RUN python3 -m pip install -r requirements.txt
 RUN ansible-galaxy collection install \
     kubernetes.core \
     community.vmware \
+    vmware.vmware_rest \
     community.windows \
     community.docker \
     ansible.posix \

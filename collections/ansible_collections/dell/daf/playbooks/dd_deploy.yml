@@ -67,15 +67,15 @@
         vm_name: "{{ name }}"
         vm_folder: "{{ folder }}"
 
-    - name: Wait and get the IPs for the VM
-      ansible.builtin.include_role:
-        name: dell.daf.vcenter
-        tasks_from: get_ips
-      vars:
-        vc_server: "{{ vcenter_hostname }}"
-        vc_username: "{{ vcenter_username }}"
-        vc_password: "{{ vcenter_password }}"
+    - name: Wait for the VM to be up and with ip
+      dell.daf.esxi_vm:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
         vm_name: "{{ name }}"
+        retries: 60
+        delay: 5
+      register: esxi_vm_output
       no_log: true
 
     - name: Initialize DD
@@ -83,7 +83,7 @@
         name: dell.daf.dd
         tasks_from: initialize
       vars:
-        dd_initial_host: "{{ ipv4_output }}"
+        dd_initial_host: "{{ esxi_vm_output['vm_details']['ip_addresses'] | first }}"
         dd_user: sysadmin
         dd_initial_password: changeme
         dd_new_password: "{{ config.sysadmin_password }}"
@@ -178,3 +178,69 @@
         name: dell.daf.dd
         tasks_from: enable_ddboost
       when: dd_getddboost_response.json.ddboost_status == 'disabled'
+
+    - name: Add network interfaces
+      community.vmware.vmware_guest_network:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        datacenter: "{{ datacenter_name }}"
+        validate_certs: false
+        name: "{{ name }}"
+        mac_address: "{{ interface.mac }}"
+        network_name: "{{ interface.name }}"
+        device_type: "{{ interface.device_type }}"
+        connected: true
+        state: present
+      loop: "{{ config.extra_interfaces }}"
+      loop_control:
+        loop_var: interface
+
+    - name: Shutdown VM
+      community.vmware.vmware_guest_powerstate:
+        name: "{{ name }}"
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: "{{ vcenter_validate_certs }}"
+        datacenter: "{{ datacenter_name }}"
+        state_change_timeout: 200
+        state: powered-off
+        
+    - name: Poweredon VM
+      community.vmware.vmware_guest_powerstate:
+        name: "{{ name }}"
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: "{{ vcenter_validate_certs }}"
+        datacenter: "{{ datacenter_name }}"
+        state_change_timeout: 200
+        state: powered-on
+
+    - name: Wait for the VM to be up and with ip
+      dell.daf.esxi_vm:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        vm_name: "{{ name }}"
+        wait_for_ip: "{{ config.network.ethv0.ip }}"
+        retries: 60
+        delay: 5
+      register: esxi_vm_output
+      no_log: true
+
+    - name: Configure extra interfaces
+      ansible.builtin.include_role:
+        name: dell.daf.dd
+        tasks_from: apply_command
+      vars:
+        apply_command__command: "{{ command }}"
+        apply_command__hostname: "{{ config.network.ethv0.ip }}"
+        apply_command__username: sysadmin
+        apply_command__password: "{{ config.sysadmin_password }}"
+      loop:
+        - command: "net config ethV2 {{ extra_interfaces.ethv2.ip }} netmask {{ extra_interfaces.ethv2.netmask }}"
+          check_success: (.*)done(.*)
+      loop_control:
+        loop_var: command

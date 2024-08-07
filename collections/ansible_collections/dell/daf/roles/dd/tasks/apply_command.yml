@@ -1,0 +1,33 @@
+---
+- name: Applying command to Data Domain
+  ansible.builtin.script: >-
+    dd_command.sh
+    {{ apply_command__hostname }}
+    {{ apply_command__username }}
+    {{ apply_command__password | quote }}
+    {{ apply_command__command.command | quote }}
+  delegate_to: localhost
+  register: apply_command_response
+  no_log: true
+
+- name: Block to check ok execution
+  when: apply_command__command.check_success is defined
+  block:
+    - name: Set default value
+      ansible.builtin.set_fact:
+        success_found: false
+
+    - name: Iterate all stdout_lines and stderr lines to find success
+      ansible.builtin.set_fact:
+        success_found: true
+      when:
+        - line | ansible.builtin.regex_search(apply_command__command.check_success) is not none
+      loop: "{{ apply_command_response.stdout_lines + apply_command_response.stderr_lines }}"
+      loop_control:
+        loop_var: line
+
+    - name: Fail if error
+      ansible.builtin.fail:
+        msg: "There was an error applying command to Data Domain. Please check the logs for more information."
+      when: 
+        - not success_found

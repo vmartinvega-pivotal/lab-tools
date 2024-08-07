@@ -122,7 +122,7 @@ all:
               network: VM Network
               ntp: es.pool.ntp.org
               timezone: Europe/Madrid
-            ova: dellemc-cyber-recovery-19.15.0.2-33.ova
+            ova: 19.15
             vmware:
               cluster: Home-Cluster
               datacenter: Home

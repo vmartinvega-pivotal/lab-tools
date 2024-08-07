@@ -52,9 +52,16 @@
         vm_dns: "{{ dns }}"
         vm_domain: "{{ domain }}"
 
-    - name: Wait 2 minutes for target connection to become reachable/usable
-      ansible.builtin.pause:
-        minutes: 2
+    - name: Wait for the VM to be up and with ip
+      dell.daf.esxi_vm:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        vm_name: "{{ name }}"
+        wait_for_ip: "{{ inventory_hostname }}"
+        retries: 60
+        delay: 5
+      no_log: true
 
 - name: Setup Cyber Automation service
   hosts: jumpcr
