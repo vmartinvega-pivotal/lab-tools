@@ -42,6 +42,27 @@
     enabled: yes
   become: true
 
+- name: Create icons folder
+  ansible.builtin.file:
+    path: /etc/OliveTin/custom-webui/icons
+    state: directory
+    mode: '0775'
+    owner: root
+    group: root
+    recurse: yes
+  become: true
+
+- name: Copy dell icon
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /etc/OliveTin/custom-webui/icons/dell.jpg
+    mode: '0644'
+    owner: root
+    group: root
+  loop:
+    - dell.jpg
+  become: true
+
 - name: Install some packages
   ansible.builtin.apt:
     name: "{{ package }}"

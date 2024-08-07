@@ -10,9 +10,9 @@ checkForUpdates: false
 logLevel: "INFO"
 
 actions:
-  - title: Deploy CR from inventory
+  - title: CR deploy from inventory
     shell: docker run -t -v /srv/samba/share/:/cr -e VC_USERNAME={{ vc_username }} -e VC_PASSWORD={{ vc_password }} --rm cr-automation:latest cr_deploy.sh --local_folder=/cr --inventory=/cr/{{ project }}
-    icon: ping
+    icon: '<img src = "custom-webui/icons/dell.jpg" style = "width: 1em;" />'
     timeout: 600
     popupOnStart: execution-dialog-stdout-only
     arguments:
@@ -39,9 +39,9 @@ actions:
       #   default: Passw0rd=crso
       #   description: crso password to use when deploying Cyber Recovery.
 
-  - title: Full Automation CR from eps
+  - title: CR full automation from eps
     shell: docker run -t -v /srv/samba/share/:/cr -e SYSADMIN_PASSWORD={{ sysadmin_vault_password }} -e SYSADMIN_USERNAME={{ sysadmin_vault_username }} -e VC_USERNAME={{ vc_username }} -e VC_PASSWORD={{ vc_password }} --rm cr-automation:latest full_automation.sh --local_folder=/cr --eps=/cr/{{ project }}
-    icon: ping
+    icon: '<img src = "custom-webui/icons/dell.jpg" style = "width: 1em;" />'
     timeout: 600
     popupOnStart: execution-dialog-stdout-only
     arguments:
@@ -53,11 +53,12 @@ actions:
       - name: vc_username
         title: vcenter/esxi username
         type: very_dangerous_raw_string 
-        default: root
+        default: administrator@home.local
 
       - name: vc_password
         title: vcenter/esxi password
         type: very_dangerous_raw_string
+        default: password
 
       - name: sysadmin_vault_username
         title: sysadmin vault user
@@ -67,3 +68,4 @@ actions:
       - name: sysadmin_vault_password
         title: sysadmin vault password
         type: very_dangerous_raw_string
+        default: Pa%w0rd123
