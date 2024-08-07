@@ -1,76 +1,3 @@
-- template_name: cyber_recovery__cybersense_data_protection
-  project_id: "24062024"
-  cr_notes: ""
-  dr_notes: ""
-  cyber_recover_management_server_general_info:
-  - management_server_parameters: CR Management Server Type
-    value: Virtual (OVA)
-  - management_server_parameters: Hypervisor Type
-    value: VMware
-  - management_server_parameters: Hypervisor Version
-    value: 7.0.2
-  - management_server_parameters: CR Software Version
-    value: 19.15
-  - management_server_parameters: CR Server OS
-    value: CentOS
-  cyber_recovery_management_server_system_configuration:
-  - hostname: crvault.home.local
-    ip_address: 192.168.1.140
-    vlan: VM Network
-    subnet_mask: 255.255.255.0
-    gateway: 192.168.1.1
-    interfaces: ""
-    interface_speed: ""
-    interface_type: ""
-    purpose: ""
-  disaster_recovery_backups:
-  - dd_vault_hostname: ddvault.home.local
-    mtree: /data/col1/DRCyberRecovery
-    frequency_days: ""
-    frequency_hrs: ""
-- template_name: cyber_recovery__cybersense_data_protection
-  project_id: "24062024"
-  vcenter_and_or_esxi:
-  - ESXi
-  brdc_approval_#: ""
-  sales_orders: ""
-  site_id: ""
-  vault_esxi:
-  - newexisting: New
-    hostname: esxi73.demo.local
-    ip_address: 192.168.1.160
-    vsan: false
-    vlan: VM Network
-  data_domain_form:
-  - Please add one or more Data Domain forms
-  - as needed
-  - ""
-  - to this project and complete as necessary
-  data_domain_notes: ""
-  dns_notes: ""
-  networking_notes: ""
-  ntp_notes: ""
-  smtp_notes: ""
-  vcenteresxivsan_notes: ""
-  vault_network:
-  - field: Domain Name
-    value: home.local
-  - field: Time Zone
-    value: America/Chicago
-  - field: SNMP
-    value: Off
-  - field: SMTP
-    value: ""
-  - field: Receipts Email Address
-    value: ""
-  - field: Active Directory
-    value: ""
-  dns_name_resolution:
-  - configuration: ""
-    ip_addresses: ""
-  ntp:
-  - configuration: ""
-    ip_addresses: ""
 - template_name: data_domain_data_protection
   project_id: "24062024"
   data_center_readiness_checklist: false
@@ -141,29 +68,29 @@
     - Security Officer Password
     values:
     - secman
-    - Password!123
+    - Passw0rd=secman
   network_settings:
-  - interface: vmeth0
+  - interface: ethV0
     aggregation_setting: None
     hostname: ddvault.home.local
     ip_address: 192.168.1.141
     netmask: 255.255.255.0
     gateway: 192.168.1.1
     purpose: Management
-  - interface: ""
-    aggregation_setting: ""
-    hostname: ""
-    ip_address: ""
-    netmask: ""
-    gateway: ""
-    purpose: ""
-  - interface: ""
-    aggregation_setting: ""
-    hostname: ""
-    ip_address: ""
-    netmask: ""
-    gateway: ""
-    purpose: ""
+  - interface: ethV1
+    aggregation_setting: None
+    hostname: ddvault.home.local
+    ip_address: 192.168.1.142
+    netmask: 255.255.255.0
+    gateway: 192.168.1.1
+    purpose: Management
+  - interface: ethV2
+    aggregation_setting: None
+    hostname: ddvault.home.local
+    ip_address: 192.168.1.182
+    netmask: 255.255.255.0
+    gateway: 192.168.1.1
+    purpose: CR Replication
   replication:
   - source_target_or_both: Select one
     software_or_dd_replication: Select one
@@ -185,3 +112,96 @@
     boost_username: ""
     ddboost_password: ""
     ddboost_user_uid: ""
+- template_name: cyber_recovery__cybersense_data_protection
+  project_id: "24062024"
+  cr_notes: ""
+  dr_notes: ""
+  cyber_recover_management_server_general_info:
+  - management_server_parameters: CR Management Server Type
+    value: Virtual (OVA)
+  - management_server_parameters: Hypervisor Type
+    value: VMware
+  - management_server_parameters: Hypervisor Version
+    value: 7.0.0
+  - management_server_parameters: CR Software Version
+    value: 19.15
+  - management_server_parameters: CR Server OS
+    value: CentOS
+  cyber_recovery_management_server_system_configuration__ova:
+  - hostname: crvault.home.local
+    ip_address: 192.168.1.140
+    subnet_mask: /24 255.255.255.0
+    gateway: 192.168.1.1
+  disaster_recovery_backups:
+  - dd_vault_hostname: ddvevault.demo.local
+    mtree: /data/col1/DRCyberRecovery
+    frequency_days: ""
+    frequency_hrs: ""
+- template_name: cyber_recovery__cybersense_data_protection
+  project_id: "24062024"
+  data_domain_form: Please add one or more Data Domain forms, as needed,, to this project and complete as necessary
+  data_domain_notes: ""
+  dns_notes: ""
+  networking_notes: ""
+  ntp_notes: ""
+  smtp_notes: ""
+  brdc_approval_#: ""
+  sales_orders: ""
+  site_id: ""
+  vault_network:
+  - field: Domain Name
+    value: demo.local
+  - field: DNS Server
+    value: 192.168.1.130
+  - field: NTP Server
+    value: es.pool.ntp.org
+  - field: Time Zone
+    value: America/Chicago
+  - field: SNMP
+    value: ""
+  - field: SMTP
+    value: ""
+  - field: Receipts Email Address
+    value: ""
+  - field: Active Directory
+    value: ""
+  dns_name_resolution:
+  - configuration: ""
+    ip_addresses: ""
+  ntp:
+  - configuration: ""
+    ip_addresses: ""
+- template_name: cyber_recovery__cybersense_data_protection
+  project_id: "24062024"
+  consulting_services: ""
+  engagement_type: New Installation
+  esxi_license: Customer Supplied
+  options:
+  - General Vault Networking Information
+  - Vault Data Domain
+  - vCenter / ESXi / VxRail
+  protection_type: Vault Only
+  vcenter_and_or_esxi: vCenter
+  vcenter_license: Customer Supplied
+  vcenteresxivsan_notes: ""
+  brdc_approval_#: ""
+  sales_orders: ""
+  site_id: ""
+  vault_vcenter:
+  - vxrail: false
+    vcenter_hostname: vcenter.home.local
+    vcenter_ip_address: 192.168.1.101
+    '#_esxi_hosts': ""
+    '#_vms': ""
+    data_center: Home
+    cluster: Home-Cluster
+    vm_folder: Demo
+  vault_esxi:
+  - newexisting: New
+    esxi_hostname: esxi.home.local
+    esxi_ip: 192.168.1.100
+    vm_name: cr-vault
+    vsan: false
+    datastore_name: datastore1
+    disk_mode: thin
+    port_group: VM Network

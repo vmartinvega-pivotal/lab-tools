@@ -92,150 +92,150 @@
       delegate_to: localhost
       changed_when: true
 
-# Set automation values for testing
-- name: Setting variables for testing 'full_automation' reading from EPS deploying vCenter
-  hosts: jumpcrtest
-  gather_facts: false
-  become: false
-  tasks:
-    - name: Creates a file with the environment variables
-      ansible.builtin.copy:
-        content: |
-          export VC_USERNAME={{ lookup('env', 'VC_USERNAME') }}
-          export VC_PASSWORD={{ lookup('env', 'VC_PASSWORD') }}
-          export SYSADMIN_USERNAME={{ lookup('env', 'SYSADMIN_USERNAME') }}
-          export SYSADMIN_PASSWORD={{ lookup('env', 'SYSADMIN_PASSWORD') }}
-          export EPS_CR_DEPLOY_TO_ESXI=False
-        dest: "{{ env_file }}"
-        mode: '0644'
-      delegate_to: localhost
+# # Set automation values for testing
+# - name: Setting variables for testing 'full_automation' reading from EPS deploying vCenter
+#   hosts: jumpcrtest
+#   gather_facts: false
+#   become: false
+#   tasks:
+#     - name: Creates a file with the environment variables
+#       ansible.builtin.copy:
+#         content: |
+#           export VC_USERNAME={{ lookup('env', 'VC_USERNAME') }}
+#           export VC_PASSWORD={{ lookup('env', 'VC_PASSWORD') }}
+#           export SYSADMIN_USERNAME={{ lookup('env', 'SYSADMIN_USERNAME') }}
+#           export SYSADMIN_PASSWORD={{ lookup('env', 'SYSADMIN_PASSWORD') }}
+#           export EPS_CR_DEPLOY_TO_ESXI=False
+#         dest: "{{ env_file }}"
+#         mode: '0644'
+#       delegate_to: localhost
 
-    - name: Upload automation.env file
-      ansible.builtin.command: "scp {{ env_file }} {{ user_samba_share }}@{{ inventory_hostname }}:{{ samba_share }}"
-      delegate_to: localhost
-      changed_when: true
+#     - name: Upload automation.env file
+#       ansible.builtin.command: "scp {{ env_file }} {{ user_samba_share }}@{{ inventory_hostname }}:{{ samba_share }}"
+#       delegate_to: localhost
+#       changed_when: true
 
-    - name: Set fact cyber recovery vm for testing
-      ansible.builtin.set_fact:
-        cyber_recovery_vm_for_testing: cr-vault
-        yaml_file: tests/eps_vcenter.yml
-        command: cr_automation_eps
-        inventory_or_eps: eps
+#     - name: Set fact cyber recovery vm for testing
+#       ansible.builtin.set_fact:
+#         cyber_recovery_vm_for_testing: cr-vault
+#         yaml_file: tests/eps_vcenter.yml
+#         command: cr_automation_eps
+#         inventory_or_eps: eps
 
-# Run full automation
-- import_playbook: jumpcr_test_automation.yml
-
-# Set automation values for testing
-- name: Setting variables for testing 'full_automation' reading from EPS deploying ESXI
-  hosts: jumpcrtest
-  gather_facts: false
-  become: false
-  tasks:
-    - name: Creates a file with the environment variables
-      ansible.builtin.copy:
-        content: |
-          export VC_USERNAME={{ lookup('env', 'ESXI_USERNAME') }}
-          export VC_PASSWORD={{ lookup('env', 'ESXI_PASSWORD') }}
-          export SYSADMIN_USERNAME={{ lookup('env', 'SYSADMIN_USERNAME') }}
-          export SYSADMIN_PASSWORD={{ lookup('env', 'SYSADMIN_PASSWORD') }}
-          export EPS_CR_DEPLOY_TO_ESXI=True
-        dest: "{{ env_file }}"
-        mode: '0644'
-      delegate_to: localhost
-
-    - name: Upload automation.env file
-      ansible.builtin.command: "scp {{ env_file }} {{ user_samba_share }}@{{ inventory_hostname }}:{{ samba_share }}"
-      delegate_to: localhost
-      changed_when: true
-
-    - name: Set fact cyber recovery vm for testing
-      ansible.builtin.set_fact:
-        cyber_recovery_vm_for_testing: cr-vault
-        yaml_file: tests/eps_esxi73.yml
-        command: cr_automation_eps
-        inventory_or_eps: eps
-
-# Run full automation
-- import_playbook: jumpcr_test_automation.yml
+# # Run full automation
+# - import_playbook: jumpcr_test_automation.yml
 
 # # Set automation values for testing
-- name: Setting variables for testing 'full_automation' reading from INVENTORY deploying VCENTER
-  hosts: jumpcrtest
-  gather_facts: false
-  become: false
-  tasks:
-    - name: Creates a file with the environment variables
-      ansible.builtin.copy:
-        content: |
-          export VC_USERNAME=read_from_inventory_not_here
-          export VC_PASSWORD=read_from_inventory_not_here
-          export SYSADMIN_USERNAME=read_from_inventory_not_here
-          export SYSADMIN_PASSWORD=read_from_inventory_not_here
-          export EPS_CR_DATASTORE=read_from_inventory_not_here
-          export EPS_CR_DISK_MODE=read_from_inventory_not_here
-          export EPS_CR_DNS=read_from_inventory_not_here
-          export EPS_CR_NTP=read_from_inventory_not_here
-          export EPS_CR_VM_NAME=read_from_inventory_not_here
-          export EPS_CR_CLUSTER_NAME=read_from_inventory_not_here
-          export EPS_CR_DATACENTER_NAME=read_from_inventory_not_here
-          export EPS_CR_FOLDER_NAME=read_from_inventory_not_here
-          export EPS_CR_DEPLOY_TO_ESXI=False
-        dest: "{{ env_file }}"
-        mode: '0644'
-      delegate_to: localhost
+# - name: Setting variables for testing 'full_automation' reading from EPS deploying ESXI
+#   hosts: jumpcrtest
+#   gather_facts: false
+#   become: false
+#   tasks:
+#     - name: Creates a file with the environment variables
+#       ansible.builtin.copy:
+#         content: |
+#           export VC_USERNAME={{ lookup('env', 'ESXI_USERNAME') }}
+#           export VC_PASSWORD={{ lookup('env', 'ESXI_PASSWORD') }}
+#           export SYSADMIN_USERNAME={{ lookup('env', 'SYSADMIN_USERNAME') }}
+#           export SYSADMIN_PASSWORD={{ lookup('env', 'SYSADMIN_PASSWORD') }}
+#           export EPS_CR_DEPLOY_TO_ESXI=True
+#         dest: "{{ env_file }}"
+#         mode: '0644'
+#       delegate_to: localhost
 
-    - name: Upload automation.env file
-      ansible.builtin.command: "scp {{ env_file }} {{ user_samba_share }}@{{ inventory_hostname }}:{{ samba_share }}"
-      delegate_to: localhost
-      changed_when: true
+#     - name: Upload automation.env file
+#       ansible.builtin.command: "scp {{ env_file }} {{ user_samba_share }}@{{ inventory_hostname }}:{{ samba_share }}"
+#       delegate_to: localhost
+#       changed_when: true
 
-    - name: Set fact cyber recovery vm for testing
-      ansible.builtin.set_fact:
-        cyber_recovery_vm_for_testing: cr-vault
-        yaml_file: tests/inv_vcenter.yml
-        command: cr_automation
-        inventory_or_eps: inv
+#     - name: Set fact cyber recovery vm for testing
+#       ansible.builtin.set_fact:
+#         cyber_recovery_vm_for_testing: cr-vault
+#         yaml_file: tests/eps_esxi73.yml
+#         command: cr_automation_eps
+#         inventory_or_eps: eps
 
-# Run full automation
-- import_playbook: jumpcr_test_automation.yml
+# # Run full automation
+# - import_playbook: jumpcr_test_automation.yml
 
-# Set automation values for testing
-- name: Setting variables for testing 'full_automation' reading from INVENTORY deploying ESXI
-  hosts: jumpcrtest
-  gather_facts: false
-  become: false
-  tasks:
-    - name: Creates a file with the environment variables
-      ansible.builtin.copy:
-        content: |
-          export VC_USERNAME=read_from_inventory_not_here
-          export VC_PASSWORD=read_from_inventory_not_here
-          export SYSADMIN_USERNAME=read_from_inventory_not_here
-          export SYSADMIN_PASSWORD=read_from_inventory_not_here
-          export EPS_CR_DATASTORE=read_from_inventory_not_here
-          export EPS_CR_DISK_MODE=read_from_inventory_not_here
-          export EPS_CR_DNS=read_from_inventory_not_here
-          export EPS_CR_NTP=read_from_inventory_not_here
-          export EPS_CR_VM_NAME=read_from_inventory_not_here
-          export EPS_CR_CLUSTER_NAME=read_from_inventory_not_here
-          export EPS_CR_DATACENTER_NAME=read_from_inventory_not_here
-          export EPS_CR_FOLDER_NAME=read_from_inventory_not_here
-          export EPS_CR_DEPLOY_TO_ESXI=True
-        dest: "{{ env_file }}"
-        mode: '0644'
-      delegate_to: localhost
+# # # Set automation values for testing
+# - name: Setting variables for testing 'full_automation' reading from INVENTORY deploying VCENTER
+#   hosts: jumpcrtest
+#   gather_facts: false
+#   become: false
+#   tasks:
+#     - name: Creates a file with the environment variables
+#       ansible.builtin.copy:
+#         content: |
+#           export VC_USERNAME=read_from_inventory_not_here
+#           export VC_PASSWORD=read_from_inventory_not_here
+#           export SYSADMIN_USERNAME=read_from_inventory_not_here
+#           export SYSADMIN_PASSWORD=read_from_inventory_not_here
+#           export EPS_CR_DATASTORE=read_from_inventory_not_here
+#           export EPS_CR_DISK_MODE=read_from_inventory_not_here
+#           export EPS_CR_DNS=read_from_inventory_not_here
+#           export EPS_CR_NTP=read_from_inventory_not_here
+#           export EPS_CR_VM_NAME=read_from_inventory_not_here
+#           export EPS_CR_CLUSTER_NAME=read_from_inventory_not_here
+#           export EPS_CR_DATACENTER_NAME=read_from_inventory_not_here
+#           export EPS_CR_FOLDER_NAME=read_from_inventory_not_here
+#           export EPS_CR_DEPLOY_TO_ESXI=False
+#         dest: "{{ env_file }}"
+#         mode: '0644'
+#       delegate_to: localhost
 
-    - name: Upload automation.env file
-      ansible.builtin.command: "scp {{ env_file }} {{ user_samba_share }}@{{ inventory_hostname }}:{{ samba_share }}"
-      delegate_to: localhost
-      changed_when: true
+#     - name: Upload automation.env file
+#       ansible.builtin.command: "scp {{ env_file }} {{ user_samba_share }}@{{ inventory_hostname }}:{{ samba_share }}"
+#       delegate_to: localhost
+#       changed_when: true
 
-    - name: Set fact cyber recovery vm for testing
-      ansible.builtin.set_fact:
-        cyber_recovery_vm_for_testing: cr-vault
-        yaml_file: tests/inv_esxi.yml
-        command: cr_automation
-        inventory_or_eps: inv
+#     - name: Set fact cyber recovery vm for testing
+#       ansible.builtin.set_fact:
+#         cyber_recovery_vm_for_testing: cr-vault
+#         yaml_file: tests/inv_vcenter.yml
+#         command: cr_automation
+#         inventory_or_eps: inv
 
-# Run full automation
-- import_playbook: jumpcr_test_automation.yml
+# # Run full automation
+# - import_playbook: jumpcr_test_automation.yml
+
+# # Set automation values for testing
+# - name: Setting variables for testing 'full_automation' reading from INVENTORY deploying ESXI
+#   hosts: jumpcrtest
+#   gather_facts: false
+#   become: false
+#   tasks:
+#     - name: Creates a file with the environment variables
+#       ansible.builtin.copy:
+#         content: |
+#           export VC_USERNAME=read_from_inventory_not_here
+#           export VC_PASSWORD=read_from_inventory_not_here
+#           export SYSADMIN_USERNAME=read_from_inventory_not_here
+#           export SYSADMIN_PASSWORD=read_from_inventory_not_here
+#           export EPS_CR_DATASTORE=read_from_inventory_not_here
+#           export EPS_CR_DISK_MODE=read_from_inventory_not_here
+#           export EPS_CR_DNS=read_from_inventory_not_here
+#           export EPS_CR_NTP=read_from_inventory_not_here
+#           export EPS_CR_VM_NAME=read_from_inventory_not_here
+#           export EPS_CR_CLUSTER_NAME=read_from_inventory_not_here
+#           export EPS_CR_DATACENTER_NAME=read_from_inventory_not_here
+#           export EPS_CR_FOLDER_NAME=read_from_inventory_not_here
+#           export EPS_CR_DEPLOY_TO_ESXI=True
+#         dest: "{{ env_file }}"
+#         mode: '0644'
+#       delegate_to: localhost
+
+#     - name: Upload automation.env file
+#       ansible.builtin.command: "scp {{ env_file }} {{ user_samba_share }}@{{ inventory_hostname }}:{{ samba_share }}"
+#       delegate_to: localhost
+#       changed_when: true
+
+#     - name: Set fact cyber recovery vm for testing
+#       ansible.builtin.set_fact:
+#         cyber_recovery_vm_for_testing: cr-vault
+#         yaml_file: tests/inv_esxi.yml
+#         command: cr_automation
+#         inventory_or_eps: inv
+
+# # Run full automation
+# - import_playbook: jumpcr_test_automation.yml

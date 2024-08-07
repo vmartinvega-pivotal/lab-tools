@@ -1,0 +1,69 @@
+# Listen on all addresses available, port 80
+listenAddressSingleHTTPFrontend: 0.0.0.0:80
+
+showNavigation: false
+showNewVersions: false
+showFooter: false
+checkForUpdates: false
+
+# Choose from INFO (default), WARN and DEBUG
+logLevel: "INFO"
+
+actions:
+  - title: Deploy CR from inventory
+    shell: docker run -t -v /srv/samba/share/:/cr -e VC_USERNAME={{ vc_username }} -e VC_PASSWORD={{ vc_password }} --rm cr-automation:latest cr_deploy.sh --local_folder=/cr --inventory=/cr/{{ project }}
+    icon: ping
+    timeout: 600
+    popupOnStart: execution-dialog-stdout-only
+    arguments:
+      - name: project
+        title: Inventory file
+        type: ascii_identifier
+        default: inventory.yml
+        description: The Inventory file to use.
+
+      - name: vc_username
+        title: Vcenter/esxi username
+        type: very_dangerous_raw_string 
+        default: root
+        description: user to connect to vcenter/esxi
+
+      - name: vc_password
+        title: Vcenter/esxi password
+        type: very_dangerous_raw_string
+        description: user password
+
+      # - name: crso_password
+      #   title: crso_password
+      #   type: ascii_identifier
+      #   default: Passw0rd=crso
+      #   description: crso password to use when deploying Cyber Recovery.
+
+  - title: Full Automation CR from eps
+    shell: docker run -t -v /srv/samba/share/:/cr -e SYSADMIN_PASSWORD={{ sysadmin_vault_password }} -e SYSADMIN_USERNAME={{ sysadmin_vault_username }} -e VC_USERNAME={{ vc_username }} -e VC_PASSWORD={{ vc_password }} --rm cr-automation:latest full_automation.sh --local_folder=/cr --eps=/cr/{{ project }}
+    icon: ping
+    timeout: 600
+    popupOnStart: execution-dialog-stdout-only
+    arguments:
+      - name: project
+        title: inventory file
+        type: ascii_identifier
+        default: eps.yml
+
+      - name: vc_username
+        title: vcenter/esxi username
+        type: very_dangerous_raw_string 
+        default: root
+
+      - name: vc_password
+        title: vcenter/esxi password
+        type: very_dangerous_raw_string
+
+      - name: sysadmin_vault_username
+        title: sysadmin vault user
+        type: very_dangerous_raw_string 
+        default: sysadmin
+
+      - name: sysadmin_vault_password
+        title: sysadmin vault password
+        type: very_dangerous_raw_string

@@ -187,14 +187,12 @@
         datacenter: "{{ datacenter_name }}"
         validate_certs: false
         name: "{{ name }}"
-        mac_address: "{{ interface.mac }}"
-        network_name: "{{ interface.name }}"
-        device_type: "{{ interface.device_type }}"
+        mac_address: "{{ config.extra_interfaces.ethv2.mac }}"
+        network_name: "{{ config.extra_interfaces.ethv2.name }}"
+        device_type: "{{ config.extra_interfaces.ethv2.device_type }}"
         connected: true
         state: present
-      loop: "{{ config.extra_interfaces }}"
-      loop_control:
-        loop_var: interface
+      delegate_to: localhost
 
     - name: Shutdown VM
       community.vmware.vmware_guest_powerstate:
@@ -240,7 +238,9 @@
         apply_command__username: sysadmin
         apply_command__password: "{{ config.sysadmin_password }}"
       loop:
-        - command: "net config ethV2 {{ extra_interfaces.ethv2.ip }} netmask {{ extra_interfaces.ethv2.netmask }}"
+        - command: net enable ethV2
+          check_success: (.*)
+        - command: "net config ethV2 {{ config.extra_interfaces.ethv2.ip }} netmask {{ config.extra_interfaces.ethv2.netmask }}"
           check_success: (.*)done(.*)
       loop_control:
         loop_var: command

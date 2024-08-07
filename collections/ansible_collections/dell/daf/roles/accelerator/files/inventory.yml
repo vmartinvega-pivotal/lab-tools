@@ -6,7 +6,32 @@ all:
         crs:
           dd_vault:
             config:
+              default_gateway: 192.168.1.1
+              dns: 8.8.8.8
+              domain: home.local
+              fqdn: dd-vault.home.local
+            ova: ddve-7.10.1.1-1049892.ova
+            vmware:
+              cluster: Home-Cluster
+              datacenter: Home
+              folder: Demo
+              datastore: datastore1
+              diskmode: thin
+              host: 192.168.1.101
+              # users_to_configure:
+              #   admin:
+              #     user: administrator@home.local
+              #     password: changeme
+            fqdn: ddvault.home.local
+            networks:
+            - interface: ethV0
+              ip: 192.168.1.141
+              netmask: 255.255.255.0
+              network: Management
+            - interface: ethV1
               ip: 192.168.1.142
+              netmask: 255.255.255.0
+              network: CR Replication
             # mtrees:
             # - name: /data/col1/DRCyberRecovery
             # users:
@@ -16,37 +41,129 @@ all:
             #   role: admin
             #   uid: 550
             #   warn_days_before_expire: 7
+            #   config:
+            #     add_ddboost: false
+            #     ci: cr
             #   password: Passw0rd=crint
-            users_to_configure:
-              sysadmin:
-                user: sysadmin
-                password: Pa%w0rd123
-              secofficer:
-                user: secofficer                
-                password: officer_Pa=w0rd123
-          vmware:
-            # cluster: Home-Cluster
-            # datacenter: Home
-            # folder: Demo
-            datastore: datastore1
-            diskmode: thin
-            host: 192.168.1.160
-            vm_name: cr-vault
+            # - force_password_change: false
+            #   max_days_between_change: 99999
+            #   name: cybersense_none
+            #   role: none
+            #   uid: 841
+            #   warn_days_before_expire: 7
+            #   config:
+            #     add_ddboost: true
+            #     ci: cs
+            #   password: Passw0rd=cybersense_none
+            # - force_password_change: false
+            #   max_days_between_change: 99999
+            #   name: cybersense_admin
+            #   role: admin
+            #   uid: 842
+            #   warn_days_before_expire: 7
+            #   config:
+            #     add_ddboost: true
+            #     ci: cs
+            #   password: Passw0rd=cybersense_admin
+            # - force_password_change: false
+            #   max_days_between_change: 99999
+            #   name: cybersense_user
+            #   role: user
+            #   uid: 843
+            #   warn_days_before_expire: 7
+            #   config:
+            #     add_ddboost: true
+            #     ci: cs
+            #   password: Passw0rd=cybersense_user
+            # users_to_configure:
+            #   sysadmin:
+            #     user: sysadmin
+            #     password: Pa%w0rd123
+            #   secofficer:
+            #     user: secofficer
+            #     password: officer_Pa=w0rd123
+          cs:
+            config:
+              default_gateway: 192.168.1.1
+              dns: 8.8.8.8
+              fqdn: cs.home.local
+              ntp: es.pool.ntp.org
+              timezone: Europe/Madrid
+              interfaces:
+                eth0:
+                  ip: 192.168.1.178
+                  netmask: 255.255.255.0
+                  network: VM Network
+                  dd_vault_link: ethV0
+                eth1:
+                  ip: 192.168.1.179
+                  netmask: 255.255.255.0
+                  network: VM Network
+                  dd_vault_link: ethV1
+                eth2:
+                  ip: 192.168.1.180
+                  netmask: 255.255.255.0
+                  network: VM Network
+                  dd_vault_link: ""
+                eth3:
+                  ip: 192.168.1.181
+                  netmask: 255.255.255.0
+                  network: VM Network
+            deployment: medium
+            ova: 8.6
+            vmware:
+              vm_name: cs-vault
+              cluster: Home-Cluster
+              datacenter: Home
+              folder: Demo
+              datastore: datastore1
+              diskmode: thin
+              host: 192.168.1.101
+              users_to_configure:
+                admin:
+                  user: administrator@home.local
+                  password: M@r1n@yc@rl0S
             users_to_configure:
               admin:
+                user: admin
+                # password: Passw0rd=sysadmin
+              root:
                 user: root
-                password: VMware1!
+                # password: Passw0rd=root
           cr:
             config:
               default_gateway: 192.168.1.1
-              dns: 192.168.1.130
+              dns: 8.8.8.8
               fqdn: cr.home.local
-              ip: 192.168.1.122
+              ip: 192.168.1.140
               netmask: 255.255.255.0
               network: VM Network
               ntp: es.pool.ntp.org
               timezone: Europe/Madrid
-            ova: dellemc-cyber-recovery-19.15.0.2-33.ova
+            ova: 19.15
+            vmware:
+              vm_name: cr-vault
+              cluster: Home-Cluster
+              datacenter: Home
+              folder: Demo
+              datastore: datastore1
+              diskmode: thin
+              host: 192.168.1.101
+              # users_to_configure:
+              #   admin:
+              #     user: administrator@home.local
+              #     password: changeme
+            policies:
+            - name: Test5
+              type: DD
+              retLock:
+                duration: 12h
+                max: 45d
+                min: 12h
+                type: governance
+              replContexts:
+              - name: Test5
+                interface: ethV1
             # users:
             # - email: noreply@cyberrecovery
             #   first_name: cradmin
@@ -61,9 +178,9 @@ all:
             #   admin:
             #     user: admin
             #     password: Passw0rd=admin
-            #   mongodb: 
-            #     user: mongodb
-            #     password: Passw0rd=mongodb
+            #   database: 
+            #     user: database
+            #     password: Passw0rd=database
             #   crso:
             #     user: crso
             #     password: Passw0rd=crso

@@ -11,6 +11,37 @@
 #   loop_control:
 #     loop_var: service
 
+- name: Download OliveTin.deb
+  ansible.builtin.get_url:
+    url: https://github.com/OliveTin/OliveTin/releases/download/2024.07.153/OliveTin_linux_amd64.deb
+    dest: /tmp/OliveTin.deb
+    mode: '0644'
+  become: true
+
+- name: Install OliveTin
+  ansible.builtin.apt:
+    deb: /tmp/OliveTin.deb
+    state: present
+  become: true
+
+- name: Copy Olive config
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /etc/OliveTin/config.yaml
+    mode: '0644'
+    owner: root
+    group: root
+  loop:
+    - olivetin_config.yml
+  become: true
+
+- name: Enable and start OliveTin service
+  ansible.builtin.service:
+    name: OliveTin
+    state: started
+    enabled: yes
+  become: true
+
 - name: Install some packages
   ansible.builtin.apt:
     name: "{{ package }}"
