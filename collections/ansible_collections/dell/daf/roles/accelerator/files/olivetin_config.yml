@@ -128,7 +128,7 @@ actions:
 
 
   - title: Create CR Policies
-    shell: docker run -t -v /srv/samba/share/:/cr --rm cr-automation:latest cr_policy.sh --local_folder=/cr --inventory=/cr/{{ project }}
+    shell: docker run -t -v /srv/samba/share/:/cr -e SYSADMIN_PASSWORD={{ sysadmin_vault_password }} -e SYSADMIN_USERNAME={{ sysadmin_vault_username }} --rm cr-automation:latest cr_policy.sh --local_folder=/cr --inventory=/cr/{{ project }}
     icon: '<img src = "custom-webui/icons/dell.jpg" style = "width: 1em;" />'
     timeout: 1200
     popupOnStart: execution-dialog
@@ -137,3 +137,13 @@ actions:
         title: inventory file
         type: ascii_identifier
         default: inventory.yml
+
+      - name: sysadmin_vault_username
+        title: sysadmin vault user
+        type: very_dangerous_raw_string 
+        default: sysadmin
+
+      - name: sysadmin_vault_password
+        title: sysadmin vault password
+        type: very_dangerous_raw_string
+        default: Pa%w0rd123
