@@ -43,10 +43,10 @@ actions:
   #     #   default: Passw0rd=crso
   #     #   description: crso password to use when deploying Cyber Recovery.
 
-  - title: CR full automation from eps
+  - title: Full CR automation (eps)
     shell: docker run -t -v /srv/samba/share/:/cr -e SYSADMIN_PASSWORD={{ sysadmin_vault_password }} -e SYSADMIN_USERNAME={{ sysadmin_vault_username }} -e VC_USERNAME={{ vc_username }} -e VC_PASSWORD={{ vc_password }} --rm cr-automation:latest full_automation.sh --local_folder=/cr --eps=/cr/{{ project }}
     icon: '<img src = "custom-webui/icons/dell.jpg" style = "width: 1em;" />'
-    timeout: 600
+    timeout: 1200
     popupOnStart: execution-dialog
     arguments:
       - name: project
@@ -75,9 +75,9 @@ actions:
         default: Pa%w0rd123
 
   - title: CS Setup
-    shell: docker run -t -v /srv/samba/share/:/cr --rm cr-automation:latest cs_setup.sh --local_folder=/cr --inventory=/cr/{{ project }}
+    shell: docker run -t -v /srv/samba/share/:/cr -e SYSADMIN_PASSWORD={{ sysadmin_vault_password }} -e SYSADMIN_USERNAME={{ sysadmin_vault_username }} --rm cr-automation:latest cs_setup.sh --local_folder=/cr --inventory=/cr/{{ project }}
     icon: '<img src = "custom-webui/icons/dell.jpg" style = "width: 1em;" />'
-    timeout: 600
+    timeout: 1200
     popupOnStart: execution-dialog
     arguments:
       - name: project
@@ -85,10 +85,20 @@ actions:
         type: ascii_identifier
         default: inventory.yml
 
-  - title: Create Replicas Prod
+      - name: sysadmin_vault_username
+        title: sysadmin vault user
+        type: very_dangerous_raw_string 
+        default: sysadmin
+
+      - name: sysadmin_vault_password
+        title: sysadmin vault password
+        type: very_dangerous_raw_string
+        default: Pa%w0rd123
+
+  - title: Create DD Prod Replicas
     shell: docker run -t -v /srv/samba/share/:/cr -e SYSADMIN_PASSWORD_PROD={{ sysadmin_prod_password }} -e SYSADMIN_USERNAME_PROD={{ sysadmin_prod_username }} -e SYSADMIN_PASSWORD={{ sysadmin_vault_password }} -e SYSADMIN_USERNAME={{ sysadmin_vault_username }} --rm cr-automation:latest dd_prod_setup.sh --local_folder=/cr --inventory=/cr/{{ project }}
     icon: '<img src = "custom-webui/icons/dell.jpg" style = "width: 1em;" />'
-    timeout: 600
+    timeout: 1200
     popupOnStart: execution-dialog
     arguments:
       - name: project
@@ -115,3 +125,15 @@ actions:
         title: sysadmin prod password
         type: very_dangerous_raw_string
         default: Pa%w0rd123
+
+
+  - title: Create CR Policies
+    shell: docker run -t -v /srv/samba/share/:/cr --rm cr-automation:latest cr_policy.sh --local_folder=/cr --inventory=/cr/{{ project }}
+    icon: '<img src = "custom-webui/icons/dell.jpg" style = "width: 1em;" />'
+    timeout: 1200
+    popupOnStart: execution-dialog
+    arguments:
+      - name: project
+        title: inventory file
+        type: ascii_identifier
+        default: inventory.yml
