@@ -23,14 +23,19 @@ all:
               ip: 192.168.1.184
               netmask: 255.255.255.0
               network: CR Replication
-            - interface: ethV2
+              replica_interface: ethV2
+            - interface: ethV3
               ip: 192.168.1.185
               netmask: 255.255.255.0
               network: CR Replication
+              replica_interface: ethV3
             mtrees:
             - name: /data/col1/Replication1
             - name: /data/col1/Replication2
             - name: /data/col1/Replication3
+            replicas:
+            - interface: ethV2
+              mtree: /data/col1/Replication1
           dd_vault:
             config:
               default_gateway: 192.168.1.1
@@ -62,10 +67,12 @@ all:
               ip: 192.168.1.182
               netmask: 255.255.255.0
               network: CR Replication
+              replica_interface: ethV2
             - interface: ethV3
               ip: 192.168.1.183
               netmask: 255.255.255.0
               network: CR Replication
+              replica_interface: ethV3
             # mtrees:
             # - name: /data/col1/DRCyberRecovery
             # users:
@@ -153,10 +160,10 @@ all:
               datastore: datastore1
               diskmode: thin
               host: 192.168.1.101
-              users_to_configure:
-                admin:
-                  user: administrator@home.local
-                  password: M@r1n@yc@rl0S
+              # users_to_configure:
+              #   admin:
+              #     user: administrator@home.local
+              #     password: changeme
             users_to_configure:
               admin:
                 user: admin
@@ -188,7 +195,7 @@ all:
               #     user: administrator@home.local
               #     password: changeme
             policies:
-            - name: Test5
+            - name: Replication1
               type: DD
               retLock:
                 duration: 12h
@@ -196,7 +203,7 @@ all:
                 min: 12h
                 type: governance
               replContexts:
-              - name: Test5
+              - name: Replication1
                 interface: ethV1
             # users:
             # - email: noreply@cyberrecovery

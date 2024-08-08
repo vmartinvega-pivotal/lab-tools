@@ -14,34 +14,34 @@ saveLogs:
     outputDirectory: /srv/samba/share/logs/output/
 
 actions:
-  - title: CR deploy from inventory
-    shell: docker run -t -v /srv/samba/share/:/cr -e VC_USERNAME={{ vc_username }} -e VC_PASSWORD={{ vc_password }} --rm cr-automation:latest cr_deploy.sh --local_folder=/cr --inventory=/cr/{{ project }}
-    icon: '<img src = "custom-webui/icons/dell.jpg" style = "width: 1em;" />'
-    timeout: 600
-    popupOnStart: execution-dialog
-    arguments:
-      - name: project
-        title: Inventory file
-        type: ascii_identifier
-        default: inventory.yml
-        description: The Inventory file to use.
+  # - title: CR deploy from inventory
+  #   shell: docker run -t -v /srv/samba/share/:/cr -e VC_USERNAME={{ vc_username }} -e VC_PASSWORD={{ vc_password }} --rm cr-automation:latest cr_deploy.sh --local_folder=/cr --inventory=/cr/{{ project }}
+  #   icon: '<img src = "custom-webui/icons/dell.jpg" style = "width: 1em;" />'
+  #   timeout: 600
+  #   popupOnStart: execution-dialog
+  #   arguments:
+  #     - name: project
+  #       title: Inventory file
+  #       type: ascii_identifier
+  #       default: inventory.yml
+  #       description: The Inventory file to use.
 
-      - name: vc_username
-        title: Vcenter/esxi username
-        type: very_dangerous_raw_string 
-        default: root
-        description: user to connect to vcenter/esxi
+  #     - name: vc_username
+  #       title: Vcenter/esxi username
+  #       type: very_dangerous_raw_string 
+  #       default: root
+  #       description: user to connect to vcenter/esxi
 
-      - name: vc_password
-        title: Vcenter/esxi password
-        type: very_dangerous_raw_string
-        description: user password
+  #     - name: vc_password
+  #       title: Vcenter/esxi password
+  #       type: very_dangerous_raw_string
+  #       description: user password
 
-      # - name: crso_password
-      #   title: crso_password
-      #   type: ascii_identifier
-      #   default: Passw0rd=crso
-      #   description: crso password to use when deploying Cyber Recovery.
+  #     # - name: crso_password
+  #     #   title: crso_password
+  #     #   type: ascii_identifier
+  #     #   default: Passw0rd=crso
+  #     #   description: crso password to use when deploying Cyber Recovery.
 
   - title: CR full automation from eps
     shell: docker run -t -v /srv/samba/share/:/cr -e SYSADMIN_PASSWORD={{ sysadmin_vault_password }} -e SYSADMIN_USERNAME={{ sysadmin_vault_username }} -e VC_USERNAME={{ vc_username }} -e VC_PASSWORD={{ vc_password }} --rm cr-automation:latest full_automation.sh --local_folder=/cr --eps=/cr/{{ project }}
@@ -71,5 +71,47 @@ actions:
 
       - name: sysadmin_vault_password
         title: sysadmin vault password
+        type: very_dangerous_raw_string
+        default: Pa%w0rd123
+
+  - title: CS Setup
+    shell: docker run -t -v /srv/samba/share/:/cr --rm cr-automation:latest cs_setup.sh --local_folder=/cr --inventory=/cr/{{ project }}
+    icon: '<img src = "custom-webui/icons/dell.jpg" style = "width: 1em;" />'
+    timeout: 600
+    popupOnStart: execution-dialog
+    arguments:
+      - name: project
+        title: inventory file
+        type: ascii_identifier
+        default: inventory.yml
+
+  - title: Create Replicas Prod
+    shell: docker run -t -v /srv/samba/share/:/cr -e SYSADMIN_PASSWORD_PROD={{ sysadmin_prod_password }} -e SYSADMIN_USERNAME_PROD={{ sysadmin_prod_username }} -e SYSADMIN_PASSWORD={{ sysadmin_vault_password }} -e SYSADMIN_USERNAME={{ sysadmin_vault_username }} --rm cr-automation:latest dd_prod_setup.sh --local_folder=/cr --inventory=/cr/{{ project }}
+    icon: '<img src = "custom-webui/icons/dell.jpg" style = "width: 1em;" />'
+    timeout: 600
+    popupOnStart: execution-dialog
+    arguments:
+      - name: project
+        title: inventory file
+        type: ascii_identifier
+        default: inventory.yml
+
+      - name: sysadmin_vault_username
+        title: sysadmin vault user
+        type: very_dangerous_raw_string 
+        default: sysadmin
+
+      - name: sysadmin_vault_password
+        title: sysadmin vault password
+        type: very_dangerous_raw_string
+        default: Pa%w0rd123
+
+      - name: sysadmin_prod_username
+        title: sysadmin prod user
+        type: very_dangerous_raw_string 
+        default: sysadmin
+
+      - name: sysadmin_prod_password
+        title: sysadmin prod password
         type: very_dangerous_raw_string
         default: Pa%w0rd123
