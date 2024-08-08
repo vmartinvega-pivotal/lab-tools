@@ -9,12 +9,16 @@ checkForUpdates: false
 # Choose from INFO (default), WARN and DEBUG
 logLevel: "INFO"
 
+saveLogs:
+    resultsDirectory: /srv/samba/share/logs/results/
+    outputDirectory: /srv/samba/share/logs/output/
+
 actions:
   - title: CR deploy from inventory
     shell: docker run -t -v /srv/samba/share/:/cr -e VC_USERNAME={{ vc_username }} -e VC_PASSWORD={{ vc_password }} --rm cr-automation:latest cr_deploy.sh --local_folder=/cr --inventory=/cr/{{ project }}
     icon: '<img src = "custom-webui/icons/dell.jpg" style = "width: 1em;" />'
     timeout: 600
-    popupOnStart: execution-dialog-stdout-only
+    popupOnStart: execution-dialog
     arguments:
       - name: project
         title: Inventory file
@@ -43,7 +47,7 @@ actions:
     shell: docker run -t -v /srv/samba/share/:/cr -e SYSADMIN_PASSWORD={{ sysadmin_vault_password }} -e SYSADMIN_USERNAME={{ sysadmin_vault_username }} -e VC_USERNAME={{ vc_username }} -e VC_PASSWORD={{ vc_password }} --rm cr-automation:latest full_automation.sh --local_folder=/cr --eps=/cr/{{ project }}
     icon: '<img src = "custom-webui/icons/dell.jpg" style = "width: 1em;" />'
     timeout: 600
-    popupOnStart: execution-dialog-stdout-only
+    popupOnStart: execution-dialog
     arguments:
       - name: project
         title: inventory file

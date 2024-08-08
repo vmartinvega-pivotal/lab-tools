@@ -1,0 +1,9 @@
+[Unit]
+Description=File Brrowser Service
+
+[Service]
+Type=simple
+ExecStart=filebrowser -r /srv/samba/share/ --port 81 --address 0.0.0.0 --noauth --database /home/daf/filebrowser.db
+
+[Install]
+WantedBy=multi-user.target

@@ -52,6 +52,18 @@
     recurse: yes
   become: true
 
+- name: Create folders for logs
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0775'
+    owner: daf
+    group: daf
+    recurse: yes
+  loop:
+    - /srv/samba/share/logs/results/
+    - /srv/samba/share/logs/output/
+
 - name: Copy dell icon
   ansible.builtin.copy:
     src: "{{ item }}"
@@ -135,6 +147,19 @@
   loop_control:
     loop_var: line
 
+- name: Install filebrowser
+  ansible.builtin.shell: >-
+    curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
+
+- name: Copy custom services
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /etc/systemd/system
+    mode: '0644'
+  loop:
+    - customization.service
+    - filebrowser.service
+
 - name: Enable and start services
   ansible.builtin.systemd:
     name: "{{ service }}"
@@ -145,6 +170,8 @@
   loop:
     - smbd.service 
     - nmbd.service
+    - filebrowser.service
+    - customization.service
   loop_control:
     loop_var: service
 
@@ -174,12 +201,6 @@
     src: rc.local
     dest: "/etc"
     mode: '0755'
-
-- name: Copy customization.service
-  ansible.builtin.copy:
-    src: customization.service
-    dest: "/etc/systemd/system"
-    mode: '0644'
 
 - name: Copy files
   ansible.builtin.copy:

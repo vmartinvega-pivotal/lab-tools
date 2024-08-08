@@ -4,13 +4,40 @@ all:
     automation:
       hosts:
         crs:
+          dd_prod:
+            config:
+              default_gateway: 192.168.1.1
+              dns: 8.8.8.8
+              domain: home.local
+              fqdn: ddprod.home.local
+            networks:
+            - interface: ethV0
+              ip: 192.168.1.143
+              netmask: 255.255.255.0
+              network: Management
+            - interface: ethV1
+              ip: 192.168.1.144
+              netmask: 255.255.255.0
+              network: Management
+            - interface: ethV2
+              ip: 192.168.1.184
+              netmask: 255.255.255.0
+              network: CR Replication
+            - interface: ethV2
+              ip: 192.168.1.185
+              netmask: 255.255.255.0
+              network: CR Replication
+            mtrees:
+            - name: /data/col1/Replication1
+            - name: /data/col1/Replication2
+            - name: /data/col1/Replication3
           dd_vault:
             config:
               default_gateway: 192.168.1.1
               dns: 8.8.8.8
               domain: home.local
-              fqdn: dd-vault.home.local
-            ova: ddve-7.10.1.1-1049892.ova
+              fqdn: ddvault.home.local
+            ova: 7.10
             vmware:
               cluster: Home-Cluster
               datacenter: Home
@@ -22,7 +49,6 @@ all:
               #   admin:
               #     user: administrator@home.local
               #     password: changeme
-            fqdn: ddvault.home.local
             networks:
             - interface: ethV0
               ip: 192.168.1.141
@@ -30,6 +56,14 @@ all:
               network: Management
             - interface: ethV1
               ip: 192.168.1.142
+              netmask: 255.255.255.0
+              network: Management
+            - interface: ethV2
+              ip: 192.168.1.182
+              netmask: 255.255.255.0
+              network: CR Replication
+            - interface: ethV3
+              ip: 192.168.1.183
               netmask: 255.255.255.0
               network: CR Replication
             # mtrees:

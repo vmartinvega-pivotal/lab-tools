@@ -179,7 +179,7 @@
         tasks_from: enable_ddboost
       when: dd_getddboost_response.json.ddboost_status == 'disabled'
 
-    - name: Add network interfaces
+    - name: Add network extra interfaces
       community.vmware.vmware_guest_network:
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_username }}"
@@ -187,11 +187,12 @@
         datacenter: "{{ datacenter_name }}"
         validate_certs: false
         name: "{{ name }}"
-        mac_address: "{{ config.extra_interfaces.ethv2.mac }}"
-        network_name: "{{ config.extra_interfaces.ethv2.name }}"
-        device_type: "{{ config.extra_interfaces.ethv2.device_type }}"
+        mac_address: "{{ item.mac }}"
+        network_name: "{{ item.network }}"
+        device_type: "{{ item.device_type }}"
         connected: true
         state: present
+      loop: "{{ config.extra_interfaces }}"
       delegate_to: localhost
 
     - name: Shutdown VM
@@ -233,14 +234,10 @@
         name: dell.daf.dd
         tasks_from: apply_command
       vars:
-        apply_command__command: "{{ command }}"
+        apply_command__command: 
+          command: "net config {{ item.interface }} {{ item.ip }} netmask {{ item.netmask }} up"
+          check_success: (.*)done(.*)
         apply_command__hostname: "{{ config.network.ethv0.ip }}"
         apply_command__username: sysadmin
         apply_command__password: "{{ config.sysadmin_password }}"
-      loop:
-        - command: net enable ethV2
-          check_success: (.*)
-        - command: "net config ethV2 {{ config.extra_interfaces.ethv2.ip }} netmask {{ config.extra_interfaces.ethv2.netmask }}"
-          check_success: (.*)done(.*)
-      loop_control:
-        loop_var: command
+      loop: "{{ config.extra_interfaces }}"
