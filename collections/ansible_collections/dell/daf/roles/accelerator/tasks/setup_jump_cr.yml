@@ -75,17 +75,6 @@
     - dell.jpg
   become: true
 
-- name: Copy nginx
-  ansible.builtin.copy:
-    src: "{{ item }}"
-    dest: /var/www/html/index.nginx-debian.html
-    mode: '0644'
-    owner: root
-    group: root
-  loop:
-    - nginx.html
-  become: true
-
 - name: Install some packages
   ansible.builtin.apt:
     name: "{{ package }}"
@@ -104,6 +93,17 @@
   loop_control:
     loop_var: package
 
+- name: Copy nginx
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /var/www/html/index.nginx-debian.html
+    mode: '0644'
+    owner: root
+    group: root
+  loop:
+    - nginx.html
+  become: true
+  
 - name: Install yq
   ansible.builtin.get_url:
     url: https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
