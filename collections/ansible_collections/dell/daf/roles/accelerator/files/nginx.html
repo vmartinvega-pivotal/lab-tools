@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Webpage</title>
+    <title>CRS Accelerator</title>
     <style>
         /* Add your CSS styles here */
         body {
@@ -17,15 +17,23 @@
         }
 
         header {
-            background-color: #f2f2f2;
+            background-color: lightblue;
             padding: 20px;
             text-align: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
         }
 
         footer {
-            background-color: #f2f2f2;
+            background-color: lightblue;
             padding: 10px;
             text-align: center;
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
         }
 
         main {
@@ -33,22 +41,31 @@
             text-align: center;
         }
 
-        a {
-            display: block;
-            margin-bottom: 10px;
+        /* Add link style */
+        .link-box {
+            display: inline-block;
+            padding: 10px 20px;
+            border: 1px solid lightblue;
+            border-radius: 5px;
+            text-decoration: none;
+            color: black;
+        }
+
+        .link-box:hover {
+            background-color: lightblue;
+            color: white;
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Welcome to CRS Accelerator</h1>
+        <h1>CRS Accelerator</h1>
     </header>
 
     <main>
-        <h2>Links</h2>
-        <a href="http://CHANGE_BY_IP:82" target="_blank">Automations</a>
-        <a href="http://CHANGE_BY_IP:81" target="_blank">Filebrowser</a>
-        <a href="https://CHANGE_BY_IP" target="_blank">Keepass</a>
+        <a href="http://CHANGE_BY_IP:82" target="_blank" class="link-box">Automations</a>
+        <a href="http://CHANGE_BY_IP:81" target="_blank" class="link-box">Filebrowser</a>
+        <a href="https://CHANGE_BY_IP" target="_blank" class="link-box">Keepass</a>
     </main>
 
     <footer>
