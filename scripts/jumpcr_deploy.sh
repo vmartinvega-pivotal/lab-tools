@@ -10,7 +10,7 @@ if [ "$#" -ne 1 ]; then
     exit 1
 fi
 
-branch_to_compile=main
+branch_to_compile=ddprod
 
 ansible-playbook --vault-password-file "${SCRIPT_DIR}/../vault_pass.txt" --extra-vars "ansible_sudo_pass=${sudo_pass}" \
     -i "${inventory_full_path_lab}" \

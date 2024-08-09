@@ -75,6 +75,17 @@
     - dell.jpg
   become: true
 
+- name: Copy nginx
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /var/www/html/index.nginx-debian.html
+    mode: '0644'
+    owner: root
+    group: root
+  loop:
+    - nginx.html
+  become: true
+
 - name: Install some packages
   ansible.builtin.apt:
     name: "{{ package }}"
@@ -89,6 +100,7 @@
     - docker.io
     - ansible
     - libxml2-utils
+    - nginx
   loop_control:
     loop_var: package
 
@@ -248,3 +260,14 @@
     backrefs: True
   loop:
     - { regexp: '^(.*){{ name }}(.*)$', line: '' }
+
+- name: Start container for keepass web
+  ansible.builtin.docker_container:
+    name: keeweb
+    image: antelle/keeweb
+    ports:
+      - "83:80"
+      - "443:443"
+    volumes:
+      - /home/daf:/etc/nginx/external/
+    detach: yes
